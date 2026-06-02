@@ -141,6 +141,15 @@ background:linear-gradient(135deg,var(--pink),var(--purple));
 border-color:transparent;color:#fff;font-weight:700;
 box-shadow:0 3px 10px rgba(108,92,231,0.25);
 }
+.sort-btn{
+flex:0 0 auto;height:24px;padding:0 10px;border-radius:12px;
+border:1px solid var(--border);background:var(--surface);
+color:var(--text2);font-size:10px;cursor:pointer;white-space:nowrap;
+transition:all 0.25s;font-weight:500;
+}
+.sort-btn.active{
+background:var(--surface2);border-color:var(--gold);color:var(--gold);font-weight:700;
+}
 
 /* ===== SECTION ===== */
 .section-header{
@@ -403,7 +412,7 @@ pointer-events:none;
 <!-- Header -->
 <div class="header">
 <div class="header-top">
-<div class="logo">追剧<span class="logo-sub">v5</span></div>
+<div class="logo">追剧<span class="logo-sub">v7</span></div>
 <div class="stats-row">
 <span class="stat-badge"><span class="dot"></span><span id="updateCount">加载中</span></span>
 </div>
@@ -518,7 +527,7 @@ onkeydown="if(event.key==='Enter')doSearch()">
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
 <script>
 // ============ CONFIG ============
-const APP_VERSION = 5;
+const APP_VERSION = 7;
 const UPDATE_URL = 'https://zhangxinzhi111.github.io/zhuiju/';
 const API_BASE = 'https://api.apibdzy.com/api.php/provide/vod/';
 const CORS_PROXIES = ['https://api.codetabs.com/v1/proxy?quest='];
@@ -614,7 +623,10 @@ function getPosterURL(item) {
     const tmdb = tmdbCache[item.vod_name];
     if (tmdb && tmdb.poster) return tmdb.poster;
   }
-  if (item.vod_pic && item.vod_pic.startsWith('http')) return item.vod_pic;
+  // Try API's own vod_pic through proxy (many CDNs blocked in China)
+  if (item.vod_pic && item.vod_pic.startsWith('http')) {
+    return CORS_PROXIES[0] + encodeURIComponent(item.vod_pic);
+  }
   return null;
 }
 
@@ -799,11 +811,24 @@ function updateBannerDots() {
 
 // ============ RENDER: CATEGORY ============
 const CATEGORIES = ['全部', '电影', '电视剧', '动漫', '综艺'];
+let sortMode = 'hot'; // 'hot' or 'new'
 
 function renderCategoryBar() {
-  document.getElementById('catBar').innerHTML = CATEGORIES.map(c =>
-    '<button class="cat-btn'+(c===currentCategory?' active':'')+'" onclick="filterCategory(\''+c+'\')">'+c+'</button>'
-  ).join('');
+  let html = '';
+  CATEGORIES.forEach(c => {
+    const active = c === currentCategory;
+    html += '<button class="cat-btn'+(active?' active':'')+'" onclick="filterCategory(\''+c+'\')">'+c+'</button>';
+  });
+  html += '<span style="flex:1"></span>';
+  html += '<button class="sort-btn'+(sortMode==='hot'?' active':'')+'" onclick="setSort(\'hot\')">🔥 最热</button>';
+  html += '<button class="sort-btn'+(sortMode==='new'?' active':'')+'" onclick="setSort(\'new\')">🆕 最新</button>';
+  document.getElementById('catBar').innerHTML = html;
+}
+
+function setSort(mode) {
+  sortMode = mode;
+  renderCategoryBar();
+  renderMovieGrid();
 }
 
 function filterCategory(cat) {
@@ -840,8 +865,9 @@ function renderSkeletons(count) {
 }
 
 function getFilteredMovies() {
-  if (currentCategory === '全部') return allMovies;
-  return allMovies.filter(m => {
+  let list;
+  if (currentCategory === '全部') list = allMovies.slice();
+  else list = allMovies.filter(m => {
     const t = (m.type_name || '').toLowerCase();
     const c = currentCategory;
     if (c === '电影') return t.includes('电影') || t.includes('movie');
@@ -850,6 +876,27 @@ function getFilteredMovies() {
     if (c === '综艺') return t.includes('综艺') || t.includes('variety');
     return true;
   });
+  // Sort: 'hot' = keep API order (already sorted by popularity), 'new' = try to extract year
+  if (sortMode === 'new') {
+    list.sort((a, b) => {
+      const ya = extractYear(a), yb = extractYear(b);
+      return yb - ya;
+    });
+  }
+  return list;
+}
+
+function extractYear(item) {
+  // Try to get year from vod_remarks (often like "2024" or "第1集")
+  if (item.vod_remarks) {
+    const m = item.vod_remarks.match(/(\d{4})/);
+    if (m) return parseInt(m[1]);
+  }
+  // Try type_name or other fields
+  const combined = (item.vod_name + ' ' + (item.type_name || '') + ' ' + (item.vod_remarks || ''));
+  const m = combined.match(/(\d{4})/);
+  if (m) return parseInt(m[1]);
+  return 0;
 }
 
 function renderMovieGrid() {
@@ -1296,11 +1343,13 @@ async function init() {
     renderCategoryBar();
     renderMovieGrid();
     updateStats();
-    // Load TMDB posters in background
+    // Load TMDB posters in background, then re-render when done
     if (tmdbEnabled()) {
       batchTMDB(allMovies).then(() => {
         renderBanner(allMovies.slice(0, 5));
         renderMovieGrid();
+        renderFavorites();
+        renderHistory();
       });
     }
   } catch(e) {
