@@ -38,13 +38,13 @@ pointer-events:none;z-index:0;
 
 /* ===== HEADER ===== */
 .header{
-position:sticky;top:0;z-index:100;padding:calc(var(--safe-top) + 6px) 12px 6px;
+position:sticky;top:0;z-index:100;padding:calc(var(--safe-top) + 6px) 10px 6px;
 background:linear-gradient(180deg,var(--bg) 70%,transparent);
 backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
 }
 .header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
 .logo{
-font-size:22px;font-weight:900;letter-spacing:2px;
+font-size:20px;font-weight:900;letter-spacing:2px;
 background:linear-gradient(135deg,var(--pink),var(--purple),var(--cyan));
 -webkit-background-clip:text;-webkit-text-fill-color:transparent;
 background-clip:text;
@@ -60,14 +60,14 @@ display:flex;align-items:center;gap:4px;
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
 .search-box{display:flex;gap:6px;}
 .search-input{
-flex:1;height:36px;border-radius:18px;border:1.5px solid var(--border);
+flex:1;height:34px;border-radius:17px;border:1.5px solid var(--border);
 background:var(--surface);color:var(--text);padding:0 14px;font-size:13px;outline:none;
 transition:all 0.3s;
 }
 .search-input:focus{border-color:var(--purple);background:rgba(108,92,231,0.08);box-shadow:0 0 16px rgba(108,92,231,0.1);}
 .search-input::placeholder{color:var(--text3);}
 .search-btn{
-height:36px;padding:0 16px;border-radius:18px;border:none;
+height:34px;padding:0 16px;border-radius:17px;border:none;
 background:linear-gradient(135deg,var(--pink),var(--purple));
 color:#fff;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;
 box-shadow:0 3px 12px rgba(108,92,231,0.3);
@@ -76,43 +76,43 @@ transition:transform 0.2s;
 .search-btn:active{transform:scale(0.95);}
 
 /* ===== CONTENT ===== */
-.content{padding:0 8px 8px;position:relative;z-index:1;}
+.content{padding:0 6px 8px;position:relative;z-index:1;}
 .page{display:none;animation:fadeIn 0.25s ease;}
 .page.active{display:block;}
 @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
 
 /* ===== BANNER ===== */
-.banner-wrap{margin:0 -4px 12px;position:relative;}
+.banner-wrap{margin:0 -2px 10px;position:relative;}
 .banner-scroll{
-display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x mandatory;
--webkit-overflow-scrolling:touch;padding:0 4px 4px;
+display:flex;gap:6px;overflow-x:auto;scroll-snap-type:x mandatory;
+-webkit-overflow-scrolling:touch;padding:0 2px 4px;
 scrollbar-width:none;scroll-behavior:smooth;
 }
 .banner-scroll::-webkit-scrollbar{display:none;}
 .banner-card{
-flex:0 0 75vw;max-width:300px;height:150px;border-radius:var(--radius);
+flex:0 0 70vw;max-width:280px;height:140px;border-radius:var(--radius);
 overflow:hidden;position:relative;scroll-snap-align:start;
-cursor:pointer;transition:transform 0.2s;
+cursor:pointer;transition:transform 0.2s;box-shadow:0 4px 16px rgba(0,0,0,0.3);
 }
 .banner-card:active{transform:scale(0.97);}
 .banner-card img{width:100%;height:100%;object-fit:cover;}
 .banner-card .banner-bg{
 width:100%;height:100%;position:absolute;inset:0;
 background:linear-gradient(135deg,var(--purple),var(--pink2),var(--cyan));
-display:flex;align-items:center;justify-content:center;font-size:40px;
+display:flex;align-items:center;justify-content:center;font-size:36px;
 }
 .banner-overlay{
 position:absolute;inset:0;
-background:linear-gradient(0deg,rgba(10,10,26,0.95) 0%,rgba(10,10,26,0.3) 40%,transparent 70%);
+background:linear-gradient(0deg,rgba(10,10,26,0.95) 0%,rgba(10,10,26,0.25) 40%,transparent 70%);
 }
 .banner-info{
-position:absolute;bottom:10px;left:12px;right:12px;z-index:2;
+position:absolute;bottom:8px;left:10px;right:10px;z-index:2;
 }
-.banner-info .banner-title{font-size:15px;font-weight:800;margin-bottom:3px;text-shadow:0 2px 6px rgba(0,0,0,0.6);}
-.banner-info .banner-meta{font-size:10px;color:rgba(255,255,255,0.75);display:flex;gap:4px;align-items:center;flex-wrap:wrap;}
-.banner-tag{padding:1px 6px;border-radius:8px;background:rgba(255,107,157,0.7);font-size:9px;color:#fff;}
+.banner-info .banner-title{font-size:14px;font-weight:800;margin-bottom:2px;text-shadow:0 2px 6px rgba(0,0,0,0.6);}
+.banner-info .banner-meta{font-size:9px;color:rgba(255,255,255,0.75);display:flex;gap:4px;align-items:center;flex-wrap:wrap;}
+.banner-tag{padding:1px 5px;border-radius:6px;background:rgba(255,107,157,0.7);font-size:8px;color:#fff;}
 .banner-dots{
-display:flex;justify-content:center;gap:5px;margin-top:8px;
+display:flex;justify-content:center;gap:5px;margin-top:6px;
 }
 .banner-dot{
 width:5px;height:5px;border-radius:50%;background:var(--text3);
@@ -122,14 +122,14 @@ transition:all 0.3s;
 
 /* ===== CATEGORY BAR ===== */
 .cat-bar{
-display:flex;gap:6px;overflow-x:auto;padding:2px 0 10px;
+display:flex;gap:5px;overflow-x:auto;padding:2px 0 8px;
 scrollbar-width:none;-webkit-overflow-scrolling:touch;
 }
 .cat-bar::-webkit-scrollbar{display:none;}
 .cat-btn{
-flex:0 0 auto;height:28px;padding:0 14px;border-radius:14px;
+flex:0 0 auto;height:26px;padding:0 12px;border-radius:13px;
 border:1px solid var(--border);background:var(--surface);
-color:var(--text2);font-size:12px;cursor:pointer;white-space:nowrap;
+color:var(--text2);font-size:11px;cursor:pointer;white-space:nowrap;
 transition:all 0.25s;font-weight:500;
 }
 .cat-btn.active{
@@ -138,7 +138,7 @@ border-color:transparent;color:#fff;font-weight:700;
 box-shadow:0 3px 10px rgba(108,92,231,0.25);
 }
 .sort-btn{
-flex:0 0 auto;height:24px;padding:0 10px;border-radius:12px;
+flex:0 0 auto;height:22px;padding:0 10px;border-radius:11px;
 border:1px solid var(--border);background:var(--surface);
 color:var(--text2);font-size:10px;cursor:pointer;white-space:nowrap;
 transition:all 0.25s;font-weight:500;
@@ -150,73 +150,78 @@ background:var(--surface2);border-color:var(--gold);color:var(--gold);font-weigh
 /* ===== SECTION ===== */
 .section-header{
 display:flex;align-items:center;justify-content:space-between;
-margin:0 4px 8px;
+margin:0 2px 6px;
 }
-.section-title{font-size:15px;font-weight:800;display:flex;align-items:center;gap:4px;}
-.section-title .icon{font-size:16px;}
+.section-title{font-size:14px;font-weight:800;display:flex;align-items:center;gap:4px;}
+.section-title .icon{font-size:15px;}
 .section-count{font-size:10px;color:var(--text3);}
 
-/* ===== COMPACT GRID ===== */
+/* ===== COMPACT GRID - 更紧凑的布局 ===== */
 .movie-grid{
-display:grid;grid-template-columns:repeat(auto-fill, minmax(140px, 1fr));
-gap:8px;
+display:grid;grid-template-columns:repeat(auto-fill, minmax(105px, 1fr));
+gap:6px;
 }
 
-/* ===== MOVIE CARD ===== */
+/* ===== MOVIE CARD - 更精致 ===== */
 .movie-card{
 border-radius:var(--radius);overflow:hidden;background:var(--surface);
 border:1px solid var(--border);cursor:pointer;
-transition:transform 0.15s;
+transition:transform 0.15s,box-shadow 0.15s;
 position:relative;
 }
+.movie-card:hover{box-shadow:0 4px 16px rgba(108,92,231,0.12);}
 .movie-card:active{transform:scale(0.97);}
 .movie-card .card-poster{
 width:100%;aspect-ratio:2/3;position:relative;overflow:hidden;
-background:linear-gradient(135deg,var(--purple),var(--pink2));
-display:flex;align-items:center;justify-content:center;
+background:linear-gradient(135deg,#1a1a3e,#2a1a3e);
 }
 .movie-card .card-poster img{
 width:100%;height:100%;object-fit:cover;
-opacity:1;
+display:block;
 }
-.movie-card .card-poster img.hidden{opacity:0;position:absolute;}
+.movie-card .card-poster img.hidden{display:none;}
 .movie-card .card-poster .poster-fallback{
 position:absolute;inset:0;
-background:linear-gradient(135deg,var(--c1,var(--purple)),var(--c2,var(--pink2)));
-display:flex;align-items:center;justify-content:center;
+background:linear-gradient(135deg,var(--c1,#1a1a3e),var(--c2,#2a1a3e));
+display:flex;align-items:center;justify-content:center;flex-direction:column;
 }
-.poster-fallback .pf-text{font-size:32px;font-weight:900;color:rgba(255,255,255,0.85);}
+.poster-fallback .pf-icon{font-size:28px;opacity:0.7;margin-bottom:2px;}
+.poster-fallback .pf-title{
+font-size:10px;font-weight:700;color:rgba(255,255,255,0.8);text-align:center;
+padding:0 4px;line-height:1.3;max-width:90%;
+display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+}
 .poster-fallback .pf-pattern{
-position:absolute;inset:0;opacity:0.08;
-background:repeating-linear-gradient(45deg,transparent,transparent 8px,rgba(255,255,255,0.1) 8px,rgba(255,255,255,0.1) 10px);
+position:absolute;inset:0;opacity:0.06;
+background:repeating-linear-gradient(45deg,transparent,transparent 6px,rgba(255,255,255,0.1) 6px,rgba(255,255,255,0.1) 8px);
 }
 .card-poster .poster-gradient{
-position:absolute;bottom:0;left:0;right:0;height:40%;
-background:linear-gradient(0deg,rgba(10,10,26,0.9),transparent);
+position:absolute;bottom:0;left:0;right:0;height:35%;
+background:linear-gradient(0deg,rgba(10,10,26,0.85),transparent);
 z-index:2;pointer-events:none;
 }
 .card-poster .poster-label{
-position:absolute;bottom:6px;left:6px;right:6px;z-index:3;
-font-size:10px;font-weight:700;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,0.6);
+position:absolute;bottom:4px;left:4px;right:4px;z-index:3;
+font-size:9px;font-weight:700;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,0.7);
 line-height:1.2;max-height:2.4em;overflow:hidden;
 display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
 }
 .card-fav{
-position:absolute;top:4px;right:4px;z-index:5;
-width:26px;height:26px;border-radius:50%;
+position:absolute;top:3px;right:3px;z-index:5;
+width:24px;height:24px;border-radius:50%;
 background:rgba(0,0,0,0.4);backdrop-filter:blur(4px);
 border:none;display:flex;align-items:center;justify-content:center;
-cursor:pointer;font-size:13px;transition:all 0.2s;padding:0;
+cursor:pointer;font-size:12px;transition:all 0.2s;padding:0;
 }
 .card-fav.active{background:var(--pink);}
-.movie-card .card-body{padding:6px 8px 8px;}
+.movie-card .card-body{padding:5px 6px 6px;}
 .card-body .card-title{
-font-size:11px;font-weight:700;white-space:nowrap;overflow:hidden;
-text-overflow:ellipsis;margin-bottom:3px;line-height:1.3;
+font-size:10px;font-weight:700;white-space:nowrap;overflow:hidden;
+text-overflow:ellipsis;margin-bottom:2px;line-height:1.3;
 }
-.card-body .card-tags{display:flex;gap:3px;flex-wrap:wrap;}
+.card-body .card-tags{display:flex;gap:2px;flex-wrap:wrap;}
 .card-body .card-tags .tag{
-font-size:9px;padding:1px 6px;border-radius:6px;
+font-size:8px;padding:1px 5px;border-radius:5px;
 background:var(--surface2);color:var(--text2);
 }
 .card-body .card-tags .tag.hot{
@@ -225,11 +230,11 @@ background:rgba(255,107,157,0.12);color:var(--pink);
 
 /* ===== TMDB RATING ===== */
 .tmdb-rating{
-position:absolute;top:4px;left:4px;z-index:5;
-font-size:10px;font-weight:800;color:#f9ca24;
+position:absolute;top:3px;left:3px;z-index:5;
+font-size:9px;font-weight:800;color:#f9ca24;
 background:rgba(0,0,0,0.65);backdrop-filter:blur(3px);
-padding:2px 6px;border-radius:6px;
-display:flex;align-items:center;gap:2px;
+padding:1px 5px;border-radius:5px;
+display:flex;align-items:center;gap:1px;
 }
 
 /* ===== DETAIL SHEET ===== */
@@ -248,11 +253,11 @@ animation:slideUp 0.3s cubic-bezier(0.16,1,0.3,1);
 @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
 .sheet-poster{
 width:100%;height:180px;position:relative;overflow:hidden;
-background:linear-gradient(135deg,var(--purple),var(--pink2));
+background:linear-gradient(135deg,#1a1a3e,#2a1a3e);
 display:flex;align-items:center;justify-content:center;
 }
 .sheet-poster img{width:100%;height:100%;object-fit:cover;}
-.sheet-poster .sheet-fallback{font-size:60px;font-weight:900;color:rgba(255,255,255,0.6);}
+.sheet-poster .sheet-fallback{font-size:50px;opacity:0.5;}
 .sheet-close{
 position:absolute;top:10px;right:10px;z-index:5;
 width:28px;height:28px;border-radius:50%;
@@ -310,7 +315,6 @@ cursor:pointer;display:flex;align-items:center;justify-content:center;
 .player-container iframe{width:100%;height:100%;border:none;}
 .player-placeholder{text-align:center;color:var(--text2);padding:20px;}
 
-/* Player mode toggle */
 .player-mode-toggle{
 position:absolute;top:8px;right:8px;z-index:20;
 display:flex;gap:4px;
@@ -334,7 +338,6 @@ color:var(--text2);font-size:10px;cursor:pointer;transition:all 0.2s;
 }
 .source-btn.active{background:rgba(108,92,231,0.2);border-color:var(--purple);color:var(--purple);}
 
-/* Episode toggle button */
 .episode-toggle{
 display:flex;align-items:center;justify-content:center;gap:4px;
 padding:6px 10px;background:var(--bg2);border-top:1px solid var(--border);flex-shrink:0;
@@ -343,7 +346,6 @@ cursor:pointer;font-size:11px;color:var(--text2);user-select:none;
 .episode-toggle .arrow{transition:transform 0.3s;font-size:10px;}
 .episode-toggle .arrow.open{transform:rotate(180deg);}
 
-/* Episode bar */
 .episode-bar{
 padding:8px 10px;background:var(--bg2);overflow-y:auto;max-height:120px;
 display:flex;flex-wrap:wrap;gap:4px;align-content:flex-start;
@@ -411,7 +413,7 @@ background:linear-gradient(90deg,var(--surface) 25%,var(--surface2) 50%,var(--su
 background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:var(--radius-sm);
 }
 @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
-.skeleton-card{height:210px;border-radius:var(--radius);overflow:hidden;}
+.skeleton-card{height:180px;border-radius:var(--radius);overflow:hidden;}
 .skeleton-card .sk-poster{height:65%;}
 .skeleton-card .sk-body{padding:8px;}
 .skeleton-card .sk-line{height:8px;margin-bottom:4px;border-radius:4px;}
@@ -434,7 +436,7 @@ pointer-events:none;
 <!-- Header -->
 <div class="header">
 <div class="header-top">
-<div class="logo">追剧<span class="logo-sub">v10</span></div>
+<div class="logo">追剧<span class="logo-sub">v11</span></div>
 <div class="stats-row">
 <span class="stat-badge"><span class="dot"></span><span id="updateCount">加载中</span></span>
 </div>
@@ -556,11 +558,14 @@ onkeydown="if(event.key==='Enter')doSearch()">
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
 <script>
 // ============ CONFIG ============
-const APP_VERSION = 10;
+const APP_VERSION = 11;
 const UPDATE_URL = 'https://zhangxinzhi111.github.io/zhuiju/';
 const API_BASE = 'https://api.apibdzy.com/api.php/provide/vod/';
-const CORS_PROXIES = ['https://api.codetabs.com/v1/proxy?quest='];
-// Multiple parse APIs for fallback
+const CORS_PROXIES = [
+  'https://api.codetabs.com/v1/proxy?quest=',
+  'https://api.allorigins.win/raw?url=',
+  'https://corsproxy.io/?'
+];
 const PARSE_APIS = [
   'https://vip.52jiexi.top/?url=',
   'https://jx.m3u8.tv/jiexi/?url=',
@@ -575,6 +580,13 @@ const TMDB_API_KEY = 'c81b4bd5ee528e1228e9751b779b9ff8';
 const TMDB_BASE = 'https://api.themoviedb.org/3';
 const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p/';
 const TMDB_POSTER_SIZE = 'w342';
+
+// Image CDN proxies for TMDB images
+const IMAGE_PROXIES = [
+  'https://image.tmdb.org',       // direct (might be blocked)
+  'https://api.codetabs.com/v1/proxy?quest=',
+  'https://corsproxy.io/?'
+];
 
 let currentPage = 'watch';
 let currentCategory = '全部';
@@ -592,8 +604,9 @@ let bannerTimer = null;
 let bannerIdx = 0;
 let bannerItems = [];
 let tmdbCache = {};
+let posterCache = {};
 let episodeVisible = true;
-let playerMode = 'direct'; // 'direct' or 'proxy'
+let playerMode = 'direct';
 let currentPlayUrl = '';
 
 // ============ TMDB API ============
@@ -604,44 +617,71 @@ function tmdbEnabled() {
 async function searchTMDB(query) {
   if (!tmdbEnabled()) return null;
   if (tmdbCache[query]) return tmdbCache[query];
-  try {
-    const proxy = CORS_PROXIES[0];
-    const tmdbUrl = TMDB_BASE + '/search/multi?api_key=' + TMDB_API_KEY + '&language=zh-CN&query=' + encodeURIComponent(query) + '&page=1';
-    const resp = await fetch(proxy + tmdbUrl, { signal: AbortSignal.timeout(8000) });
-    if (!resp.ok) return null;
-    const data = await resp.json();
-    if (!data.results || data.results.length === 0) return null;
-    let best = null;
-    for (const r of data.results) {
-      if (r.media_type === 'movie' || r.media_type === 'tv') { best = r; break; }
-    }
-    if (!best) best = data.results[0];
-    const result = {
-      poster: best.poster_path ? (proxy + encodeURIComponent(TMDB_IMAGE_BASE + TMDB_POSTER_SIZE + best.poster_path)) : null,
-      rating: best.vote_average ? best.vote_average.toFixed(1) : null,
-      year: (best.release_date || best.first_air_date || '').substring(0, 4),
-      overview: best.overview || '',
-      title: best.title || best.name || ''
-    };
-    tmdbCache[query] = result;
-    return result;
-  } catch(e) {
-    return null;
+  
+  // Try multiple CORS proxies for TMDB API
+  for (const proxy of CORS_PROXIES) {
+    try {
+      const tmdbUrl = TMDB_BASE + '/search/multi?api_key=' + TMDB_API_KEY + '&language=zh-CN&query=' + encodeURIComponent(query) + '&page=1';
+      const resp = await fetch(proxy + tmdbUrl, { signal: AbortSignal.timeout(10000) });
+      if (!resp.ok) continue;
+      const data = await resp.json();
+      if (!data.results || data.results.length === 0) return null;
+      
+      let best = null;
+      for (const r of data.results) {
+        if (r.media_type === 'movie' || r.media_type === 'tv') { best = r; break; }
+      }
+      if (!best) best = data.results[0];
+      
+      // Try multiple image CDN proxies for poster
+      let poster = null;
+      if (best.poster_path) {
+        const posterPath = TMDB_IMAGE_BASE + TMDB_POSTER_SIZE + best.poster_path;
+        // First try direct (might work on some networks)
+        try {
+          const testResp = await fetch(posterPath, { method: 'HEAD', signal: AbortSignal.timeout(3000) });
+          if (testResp.ok) poster = posterPath;
+        } catch(e) {}
+        // If direct failed, try proxies
+        if (!poster) {
+          for (const imgProxy of IMAGE_PROXIES.slice(1)) {
+            try {
+              const testResp = await fetch(imgProxy + encodeURIComponent(posterPath), { method: 'HEAD', signal: AbortSignal.timeout(3000) });
+              if (testResp.ok) { poster = imgProxy + encodeURIComponent(posterPath); break; }
+            } catch(e) {}
+          }
+        }
+      }
+      
+      const result = {
+        poster: poster,
+        rating: best.vote_average ? best.vote_average.toFixed(1) : null,
+        year: (best.release_date || best.first_air_date || '').substring(0, 4),
+        overview: best.overview || '',
+        title: best.title || best.name || ''
+      };
+      tmdbCache[query] = result;
+      return result;
+    } catch(e) { continue; }
   }
+  return null;
 }
 
 async function batchTMDB(movies) {
   if (!tmdbEnabled()) return;
-  const batch = movies.slice(0, 20);
+  const batch = movies.slice(0, 15);
   const promises = batch.map(m => searchTMDB(m.vod_name));
   await Promise.allSettled(promises);
 }
 
 // ============ POSTER COLORS ============
 const POSTER_COLORS = [
-  ['#ff6b9d','#c44569'],['#6c5ce7','#a29bfe'],['#00d2ff','#0097e6'],
-  ['#f9ca24','#f0932b'],['#2ed573','#7bed9f'],['#ff9f43','#ee5a24'],
-  ['#e056a0','#a83279'],['#1e90ff','#3742fa']
+  ['#6c5ce7','#a29bfe'],['#00d2ff','#0097e6'],
+  ['#ff6b9d','#c44569'],['#f9ca24','#f0932b'],
+  ['#2ed573','#7bed9f'],['#ff9f43','#ee5a24'],
+  ['#e056a0','#a83279'],['#1e90ff','#3742fa'],
+  ['#0abde3','#48dbfb'],['#ff6348','#ff7f50'],
+  ['#5f27cd','#8854d0'],['#20bf6b','#26de81'],
 ];
 
 function posterColor(name) {
@@ -649,15 +689,39 @@ function posterColor(name) {
   return POSTER_COLORS[Math.abs(h) % POSTER_COLORS.length];
 }
 
-// ============ POSTER URL ============
+function posterIcon(name) {
+  // Map category to icon
+  const t = (name || '').toLowerCase();
+  if (t.includes('电影')||t.includes('动作')||t.includes('科幻')) return '🎬';
+  if (t.includes('电视')||t.includes('剧')||t.includes('drama')) return '📺';
+  if (t.includes('动漫')||t.includes('动画')) return '🐾';
+  if (t.includes('综艺')) return '🎤';
+  return '🎬';
+}
+
+// ============ POSTER URL - 核心改进：多代理尝试 ============
 function getPosterURL(item) {
+  // Check cache first
+  const cacheKey = 'poster_' + item.vod_id;
+  if (posterCache[cacheKey]) return posterCache[cacheKey];
+  
+  // 1. TMDB poster (already proxied via IMAGE_PROXIES in searchTMDB)
   if (tmdbEnabled()) {
     const tmdb = tmdbCache[item.vod_name];
-    if (tmdb && tmdb.poster) return tmdb.poster;
+    if (tmdb && tmdb.poster) {
+      posterCache[cacheKey] = tmdb.poster;
+      return tmdb.poster;
+    }
   }
+  
+  // 2. API vod_pic - try multiple approaches
   if (item.vod_pic && item.vod_pic.startsWith('http')) {
-    return CORS_PROXIES[0] + encodeURIComponent(item.vod_pic);
+    // Try CORS proxy first
+    const proxied = CORS_PROXIES[0] + encodeURIComponent(item.vod_pic);
+    posterCache[cacheKey] = proxied;
+    return proxied;
   }
+  
   return null;
 }
 
@@ -669,21 +733,36 @@ function getRating(item) {
   return null;
 }
 
-// ============ POSTER HTML ============
+// ============ POSTER HTML - 更美观的 fallback ============
 function posterHTML(item) {
   const c = posterColor(item.vod_name);
   const pic = getPosterURL(item);
   const rating = getRating(item);
+  const icon = posterIcon(item.type_name || '');
+  const name = escapeHTML(item.vod_name);
+  
   let ratingHTML = '';
   if (rating) {
     ratingHTML = '<div class="tmdb-rating">⭐ '+rating+'</div>';
   }
+  
+  // Always show img with onerror fallback
   if (pic) {
     return ratingHTML +
       '<img src="'+pic+'" loading="lazy" onerror="this.classList.add(\'hidden\');this.nextElementSibling.style.display=\'flex\'">' +
-      '<div class="poster-fallback" style="--c1:'+c[0]+';--c2:'+c[1]+';display:none"><div class="pf-pattern"></div><div class="pf-text">'+(item.vod_name||'?')[0]+'</div>';
+      '<div class="poster-fallback" style="--c1:'+c[0]+';--c2:'+c[1]+';display:none">' +
+        '<div class="pf-pattern"></div>' +
+        '<div class="pf-icon">'+icon+'</div>' +
+        '<div class="pf-title">'+name+'</div>' +
+      '</div>';
   }
-  return '<div class="poster-fallback" style="--c1:'+c[0]+';--c2:'+c[1]+'"><div class="pf-pattern"></div><div class="pf-text">'+(item.vod_name||'?')[0]+'</div>';
+  
+  // No image URL at all - show nice fallback
+  return '<div class="poster-fallback" style="--c1:'+c[0]+';--c2:'+c[1]+'">' +
+    '<div class="pf-pattern"></div>' +
+    '<div class="pf-icon">'+icon+'</div>' +
+    '<div class="pf-title">'+name+'</div>' +
+    '</div>';
 }
 
 function escapeHTML(s) {
@@ -703,12 +782,18 @@ function buildApiUrl(ac, params) {
 async function apiCall(params) {
   const ac = params.ac || 'list';
   const directUrl = buildApiUrl(ac, params);
-  const proxyUrl = CORS_PROXIES[0] + encodeURIComponent(directUrl);
-  try { return await fetchAndParse(proxyUrl, ac); }
-  catch(e1) {
-    try { return await fetchAndParse(directUrl, ac); }
-    catch(e2) { throw e1; }
+  
+  // Try each CORS proxy
+  for (const proxy of CORS_PROXIES) {
+    try {
+      const proxyUrl = proxy + encodeURIComponent(directUrl);
+      return await fetchAndParse(proxyUrl, ac);
+    } catch(e) { continue; }
   }
+  
+  // Try direct as last resort
+  try { return await fetchAndParse(directUrl, ac); }
+  catch(e) { throw e; }
 }
 
 async function fetchAndParse(url, ac) {
@@ -826,10 +911,11 @@ function renderBanner(items) {
   scroll.innerHTML = bannerItems.map((item, i) => {
     const c = posterColor(item.vod_name);
     const pic = getPosterURL(item);
+    const icon = posterIcon(item.type_name || '');
     const nameSafe = escapeHTML(item.vod_name).replace(/'/g, "\\'");
     return '<div class="banner-card" onclick="openSheet('+item.vod_id+',\''+nameSafe+'\')">'+
       (pic ? '<img src="'+pic+'" loading="eager" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'">' : '')+
-      '<div class="banner-bg" style="'+(pic?'display:none':'')+'background:linear-gradient(135deg,'+c[0]+','+c[1]+')">'+ (item.vod_name||'?')[0] +'</div>'+
+      '<div class="banner-bg" style="'+(pic?'display:none':'')+'background:linear-gradient(135deg,'+c[0]+','+c[1]+')">'+ icon +'</div>'+
       '<div class="banner-overlay"></div>'+
       '<div class="banner-info">'+
       '<div class="banner-title">'+escapeHTML(item.vod_name)+'</div>'+
@@ -850,7 +936,7 @@ function renderBanner(items) {
   bannerScrollListener = () => {
     const cards = scroll.querySelectorAll('.banner-card');
     if (!cards.length) return;
-    const w = cards[0].offsetWidth + 8;
+    const w = cards[0].offsetWidth + 6;
     const idx = Math.round(scroll.scrollLeft / w);
     if (idx >= 0 && idx < bannerItems.length && idx !== bannerIdx) {
       bannerIdx = idx;
@@ -865,7 +951,7 @@ function autoScrollBanner(idx) {
   if (!scroll) return;
   const cards = scroll.querySelectorAll('.banner-card');
   if (!cards.length) return;
-  const targetScroll = idx * (cards[0].offsetWidth + 8);
+  const targetScroll = idx * (cards[0].offsetWidth + 6);
   scroll.scrollTo({ left: targetScroll, behavior: 'smooth' });
   bannerIdx = idx;
   updateBannerDots();
@@ -997,11 +1083,12 @@ async function openSheet(vodId, vodName) {
     sheetData = detail;
 
     const c = posterColor(detail.vod_name);
+    const icon = posterIcon(detail.type_name || '');
     const pic = getPosterURL(detail);
     if (pic) {
-      document.getElementById('sheetPoster').innerHTML = '<button class="sheet-close" onclick="closeSheet()">✕</button><img src="'+pic+'" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'"><div class="sheet-fallback" style="display:none;background:linear-gradient(135deg,'+c[0]+','+c[1]+')">'+(detail.vod_name||'?')[0]+'</div>';
+      document.getElementById('sheetPoster').innerHTML = '<button class="sheet-close" onclick="closeSheet()">✕</button><img src="'+pic+'" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'"><div class="sheet-fallback" style="display:none;background:linear-gradient(135deg,'+c[0]+','+c[1]+')">'+icon+'</div>';
     } else {
-      document.getElementById('sheetPoster').innerHTML = '<button class="sheet-close" onclick="closeSheet()">✕</button><div class="sheet-fallback" style="background:linear-gradient(135deg,'+c[0]+','+c[1]+')">'+(detail.vod_name||'?')[0]+'</div>';
+      document.getElementById('sheetPoster').innerHTML = '<button class="sheet-close" onclick="closeSheet()">✕</button><div class="sheet-fallback" style="background:linear-gradient(135deg,'+c[0]+','+c[1]+')">'+icon+'</div>';
     }
 
     document.getElementById('sheetTitle').textContent = detail.vod_name;
@@ -1206,7 +1293,6 @@ function switchPlayerMode(mode) {
   playerMode = mode;
   document.getElementById('btnModeDirect').classList.toggle('active', mode === 'direct');
   document.getElementById('btnModeProxy').classList.toggle('active', mode === 'proxy');
-  // Replay current URL with new mode
   if (currentPlayUrl) {
     const resumeTime = playerVideo ? (playerVideo.currentTime || 0) : 0;
     playWithMode(currentPlayUrl, resumeTime);
@@ -1216,44 +1302,34 @@ function switchPlayerMode(mode) {
 function playWithMode(url, resumeTime) {
   currentPlayUrl = url;
   const container = document.getElementById('playerContainer');
-  // Show mode toggle
   document.getElementById('playerModeToggle').style.display = 'flex';
 
   if (playerMode === 'proxy') {
-    // Use parse API iframe
     playViaProxy(url);
     return;
   }
-
-  // Direct mode: try HLS or native video
   playDirect(url, resumeTime);
 }
 
 function playDirect(url, resumeTime) {
   const container = document.getElementById('playerContainer');
-  // Clean up
   cleanupPlayer();
 
-  // Check if URL is a stream (m3u8, mpd, ts, etc.) or direct media
   const isStream = /\.m3u8([?#]|$)|\.mpd([?#]|$)|\/m3u8\/|\/hls\/|\.ts([?#]|$)/i.test(url);
   const isMedia = /\.mp4([?#]|$)|\.flv([?#]|$)|\.mkv([?#]|$)|\.avi([?#]|$)|\.webm([?#]|$)/i.test(url);
   const isHttp = url.startsWith('http');
 
   if (isStream) {
-    // Try HLS
     if (typeof Hls !== 'undefined' && Hls.isSupported()) {
       playHLS(url, resumeTime);
     } else if (typeof Hls !== 'undefined') {
-      // HLS.js loaded but not supported (e.g., Safari has native support)
       playNativeHLS(url, resumeTime);
     } else {
-      // HLS.js not loaded, try native
       playNativeHLS(url, resumeTime);
     }
   } else if (isMedia && isHttp) {
     playNative(url, resumeTime);
   } else if (isHttp) {
-    // Unknown format, try HLS first then fallback to native
     playHLS(url, resumeTime);
   } else {
     container.innerHTML = '<div class="player-placeholder">⚠️ 不支持的播放地址格式<br><small>尝试切换"解析"模式</small></div>';
@@ -1290,27 +1366,20 @@ function playHLS(url, resumeTime) {
     hls.attachMedia(video);
 
     hls.on(Hls.Events.MANIFEST_PARSED, () => {
-      if (resumeTime > 0) {
-        video.currentTime = resumeTime;
-      }
-      video.play().catch(e => {
-        console.warn('HLS autoplay failed:', e.message);
-        // Show play button - user needs to tap
-      });
+      if (resumeTime > 0) video.currentTime = resumeTime;
+      video.play().catch(e => console.warn('HLS autoplay failed:', e.message));
     });
 
     hls.on(Hls.Events.ERROR, (event, data) => {
       if (data.fatal) {
         switch (data.type) {
           case Hls.ErrorTypes.NETWORK_ERROR:
-            // Retry once
             hls.startLoad();
             break;
           case Hls.ErrorTypes.MEDIA_ERROR:
             hls.recoverMediaError();
             break;
           default:
-            // Fallback to proxy mode
             hls.destroy();
             playViaProxy(url);
             break;
@@ -1320,9 +1389,7 @@ function playHLS(url, resumeTime) {
 
     playerVideo = video;
     playerHls = hls;
-    video.hls = hls;
   } catch(e) {
-    // HLS failed, fallback to proxy
     video.remove();
     playViaProxy(url);
   }
@@ -1339,11 +1406,7 @@ function playNativeHLS(url, resumeTime) {
   video.style.cssText = 'width:100%;height:100%;max-height:100%;object-fit:contain;';
   container.appendChild(video);
   playerVideo = video;
-  video.play().catch(() => {
-    // Native HLS not supported, fallback to proxy
-    video.remove();
-    playViaProxy(url);
-  });
+  video.play().catch(() => { video.remove(); playViaProxy(url); });
 }
 
 function playNative(url, resumeTime) {
@@ -1361,20 +1424,16 @@ function playNative(url, resumeTime) {
   video.addEventListener('error', () => {
     video.remove();
     playerVideo = null;
-    // Fallback to proxy
     playViaProxy(url);
   });
 
-  video.play().catch(() => {
-    // Maybe autoplay blocked, video still works with controls
-  });
+  video.play().catch(() => {});
 }
 
 function playViaProxy(url) {
   const container = document.getElementById('playerContainer');
   cleanupPlayer();
 
-  // Try parse APIs in sequence
   const encodedUrl = encodeURIComponent(url);
   const iframe = document.createElement('iframe');
   iframe.setAttribute('allowfullscreen', 'true');
@@ -1384,11 +1443,9 @@ function playViaProxy(url) {
   iframe.src = PARSE_APIS[0] + encodedUrl;
   container.appendChild(iframe);
 
-  // Store for retry
   iframe.dataset.parseIdx = '0';
   iframe.dataset.originalUrl = url;
 
-  // If first parse API fails, try next after 5 seconds
   const retryTimer = setTimeout(() => {
     const idx = parseInt(iframe.dataset.parseIdx || '0');
     if (idx + 1 < PARSE_APIS.length) {
@@ -1397,20 +1454,12 @@ function playViaProxy(url) {
     }
   }, 8000);
 
-  iframe.addEventListener('load', () => {
-    clearTimeout(retryTimer);
-  });
+  iframe.addEventListener('load', () => clearTimeout(retryTimer));
 }
 
 function cleanupPlayer() {
-  if (playerHls) {
-    try { playerHls.destroy(); } catch(e) {}
-    playerHls = null;
-  }
-  if (playerVideo) {
-    try { playerVideo.pause(); playerVideo.remove(); } catch(e) {}
-    playerVideo = null;
-  }
+  if (playerHls) { try { playerHls.destroy(); } catch(e) {} playerHls = null; }
+  if (playerVideo) { try { playerVideo.pause(); playerVideo.remove(); } catch(e) {} playerVideo = null; }
   document.getElementById('playerContainer').innerHTML = '';
 }
 
@@ -1422,7 +1471,6 @@ function showPlayer() {
   document.querySelector('.header').style.display = 'none';
   document.body.style.overflow = 'hidden';
   showEpisodes();
-  // Reset mode to direct on new play
   playerMode = 'direct';
   document.getElementById('playerModeToggle').style.display = 'none';
 }
@@ -1484,7 +1532,6 @@ function playEpisode(url, btnEl, resumeTime) {
     showEpisodes();
   }
 
-  // Reset player mode to direct for new episode
   playerMode = 'direct';
   document.getElementById('btnModeDirect').classList.add('active');
   document.getElementById('btnModeProxy').classList.remove('active');
@@ -1598,7 +1645,7 @@ function updateStats() {
 
 // ============ INIT ============
 async function init() {
-  document.getElementById('movieGrid').innerHTML = renderSkeletons(6);
+  document.getElementById('movieGrid').innerHTML = renderSkeletons(8);
 
   const cache = getCache();
   if (cache && cache.data.length > 0) {
