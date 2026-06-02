@@ -526,8 +526,8 @@ const PARSE_APIS = ['https://vip.52jiexi.top/?url='];
 const CACHE_KEY = 'zhuiju_cache';
 const CACHE_TTL = 24 * 60 * 60 * 1000;
 
-// TMDB config — 把 YOUR_KEY_HERE 替换为你的 TMDB API Key (v3)
-const TMDB_API_KEY = 'YOUR_TMDB_API_KEY_HERE';
+// TMDB config
+const TMDB_API_KEY = 'c81b4bd5ee528e1228e9751b779b9ff8';
 const TMDB_BASE = 'https://api.themoviedb.org/3';
 const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p/';
 const TMDB_POSTER_SIZE = 'w342'; // w92, w154, w185, w342, w500, w780, original
@@ -559,8 +559,9 @@ async function searchTMDB(query) {
   if (tmdbCache[query]) return tmdbCache[query];
   try {
     const proxy = CORS_PROXIES[0];
-    const url = TMDB_BASE + '/search/multi?api_key=' + TMDB_API_KEY + '&language=zh-CN&query=' + encodeURIComponent(query) + '&page=1';
-    const resp = await fetch(proxy + encodeURIComponent(url), { signal: AbortSignal.timeout(8000) });
+    // Build TMDB search URL — DON'T encodeURIComponent the whole thing, proxy needs raw URL
+    const tmdbUrl = TMDB_BASE + '/search/multi?api_key=' + TMDB_API_KEY + '&language=zh-CN&query=' + encodeURIComponent(query) + '&page=1';
+    const resp = await fetch(proxy + tmdbUrl, { signal: AbortSignal.timeout(8000) });
     if (!resp.ok) return null;
     const data = await resp.json();
     if (!data.results || data.results.length === 0) return null;
@@ -572,8 +573,9 @@ async function searchTMDB(query) {
       }
     }
     if (!best) best = data.results[0];
+    // TMDB image also needs proxy in China — use codetabs image proxy
     const result = {
-      poster: best.poster_path ? TMDB_IMAGE_BASE + TMDB_POSTER_SIZE + best.poster_path : null,
+      poster: best.poster_path ? (proxy + encodeURIComponent(TMDB_IMAGE_BASE + TMDB_POSTER_SIZE + best.poster_path)) : null,
       rating: best.vote_average ? best.vote_average.toFixed(1) : null,
       year: (best.release_date || best.first_air_date || '').substring(0, 4),
       overview: best.overview || '',
