@@ -436,7 +436,7 @@ pointer-events:none;
 <!-- Header -->
 <div class="header">
 <div class="header-top">
-<div class="logo">追剧<span class="logo-sub">v11</span></div>
+<div class="logo">追剧<span class="logo-sub">v12</span></div>
 <div class="stats-row">
 <span class="stat-badge"><span class="dot"></span><span id="updateCount">加载中</span></span>
 </div>
@@ -529,6 +529,10 @@ onkeydown="if(event.key==='Enter')doSearch()">
 </div>
 </div>
 <div class="source-select" id="sourceSelect"></div>
+<div class="source-select" style="border-top:none;padding-top:0;font-size:10px;color:var(--text3);justify-content:flex-start">
+  <span>🔗 当前线路：<span id="currentParseLabel">解析1</span></span>
+  <button class="source-btn" onclick="switchParseLine()" style="margin-left:auto">🔄 换线路</button>
+</div>
 <div class="episode-toggle" id="episodeToggle" onclick="toggleEpisodes()">
 <span>📺 选集</span><span class="arrow" id="episodeArrow">▼</span>
 </div>
@@ -558,19 +562,23 @@ onkeydown="if(event.key==='Enter')doSearch()">
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
 <script>
 // ============ CONFIG ============
-const APP_VERSION = 11;
+const APP_VERSION = 12;
 const UPDATE_URL = 'https://zhangxinzhi111.github.io/zhuiju/';
 const API_BASE = 'https://api.apibdzy.com/api.php/provide/vod/';
 const CORS_PROXIES = [
-  'https://api.codetabs.com/v1/proxy?quest=',
   'https://api.allorigins.win/raw?url=',
+  'https://api.codetabs.com/v1/proxy?quest=',
   'https://corsproxy.io/?'
 ];
 const PARSE_APIS = [
-  'https://vip.52jiexi.top/?url=',
-  'https://jx.m3u8.tv/jiexi/?url=',
-  'https://jx.playerjy.com/?url=',
-  'https://jx.aidouer.net/?url='
+  'https://api.78sy.cn/?url=',
+  'https://api.yueliangjx.com/?url=',
+  'https://www.kpezp.cn/jlexi.php?url=',
+  'https://api.8bjx.cn/?url=',
+  'https://www.ckmov.vip/api.php?url=',
+  'https://jiexi.071811.cc/jx.php?url=',
+  'https://jqaaa.com/jx.php?url=',
+  'https://jx.mw0.cc/?url='
 ];
 const CACHE_KEY = 'zhuiju_cache';
 const CACHE_TTL = 24 * 60 * 60 * 1000;
@@ -783,21 +791,26 @@ async function apiCall(params) {
   const ac = params.ac || 'list';
   const directUrl = buildApiUrl(ac, params);
   
-  // Try each CORS proxy
-  for (const proxy of CORS_PROXIES) {
+  // Race multiple proxies - fastest wins
+  const proxyPromises = CORS_PROXIES.map(async (proxy) => {
     try {
       const proxyUrl = proxy + encodeURIComponent(directUrl);
       return await fetchAndParse(proxyUrl, ac);
-    } catch(e) { continue; }
-  }
+    } catch(e) { throw e; }
+  });
   
-  // Try direct as last resort
-  try { return await fetchAndParse(directUrl, ac); }
-  catch(e) { throw e; }
+  // Use Promise.any to get first successful result
+  try {
+    return await Promise.any(proxyPromises);
+  } catch(e) {
+    // All failed, try direct
+    try { return await fetchAndParse(directUrl, ac); }
+    catch(e2) { throw e2; }
+  }
 }
 
 async function fetchAndParse(url, ac) {
-  const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
+  const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
   if (!res.ok) throw new Error('HTTP '+res.status);
   const text = await res.text();
   let data;
@@ -1248,8 +1261,16 @@ async function resumeFromHistory(vodId, sourceIdx, epIdx) {
   const container = document.getElementById('playerContainer');
   container.innerHTML = '<div class="player-placeholder">⏳ 正在恢复播放...</div>';
   showPlayer();
+  
+  const safetyTimer = setTimeout(() => {
+    if (!currentPlayData) {
+      container.innerHTML = '<div class="player-placeholder">⚠️ 恢复超时<br><small>请检查网络后重试</small></div>';
+    }
+  }, 10000);
+
   try {
     const detail = await fetchDetail(vodId);
+    clearTimeout(safetyTimer);
     if (!detail || !detail.vod_play_url) { container.innerHTML='<div class="player-placeholder">⚠️ 暂无播放资源</div>'; return; }
     currentPlayData = detail;
     document.getElementById('playerTitle').textContent = detail.vod_name;
@@ -1263,9 +1284,8 @@ async function resumeFromHistory(vodId, sourceIdx, epIdx) {
     currentEpIdx = Math.min(epIdx, src.eps.length-1);
     renderEpisodes(src, currentEpIdx);
     document.getElementById('playerPage').dataset.sources = JSON.stringify(allSources);
-    const histEntry = history.find(h => h.vod_id === vodId);
-    playEpisode(src.eps[currentEpIdx].url, null, histEntry ? histEntry.current_time||0 : 0);
-  } catch(e) { container.innerHTML='<div class="player-placeholder">⚠️ 恢复失败<br><small>'+(e.message||'')+'</small></div>'; }
+    playEpisode(src.eps[currentEpIdx].url, null, 0);
+  } catch(e) { clearTimeout(safetyTimer); container.innerHTML='<div class="player-placeholder">⚠️ 恢复失败<br><small>'+(e.message||'')+'</small></div>'; }
 }
 
 // ============ EPISODE TOGGLE ============
@@ -1289,172 +1309,91 @@ function showEpisodes() {
 }
 
 // ============ PLAYER MODE SWITCH ============
+let parseApiIdx = 0; // current parse API index
+
 function switchPlayerMode(mode) {
   playerMode = mode;
   document.getElementById('btnModeDirect').classList.toggle('active', mode === 'direct');
   document.getElementById('btnModeProxy').classList.toggle('active', mode === 'proxy');
   if (currentPlayUrl) {
-    const resumeTime = playerVideo ? (playerVideo.currentTime || 0) : 0;
-    playWithMode(currentPlayUrl, resumeTime);
+    playEpisode(currentPlayUrl, null, 0);
   }
 }
 
-function playWithMode(url, resumeTime) {
+function playWithMode(url) {
   currentPlayUrl = url;
   const container = document.getElementById('playerContainer');
   document.getElementById('playerModeToggle').style.display = 'flex';
+  parseApiIdx = 0;
 
-  if (playerMode === 'proxy') {
-    playViaProxy(url);
-    return;
+  if (playerMode === 'direct') {
+    // Direct mode: try iframe with parse API
+    playViaProxy(url, 0);
+  } else {
+    playViaProxy(url, 0);
   }
-  playDirect(url, resumeTime);
 }
 
 function playDirect(url, resumeTime) {
   const container = document.getElementById('playerContainer');
   cleanupPlayer();
 
-  const isStream = /\.m3u8([?#]|$)|\.mpd([?#]|$)|\/m3u8\/|\/hls\/|\.ts([?#]|$)/i.test(url);
-  const isMedia = /\.mp4([?#]|$)|\.flv([?#]|$)|\.mkv([?#]|$)|\.avi([?#]|$)|\.webm([?#]|$)/i.test(url);
-  const isHttp = url.startsWith('http');
-
-  if (isStream) {
-    if (typeof Hls !== 'undefined' && Hls.isSupported()) {
-      playHLS(url, resumeTime);
-    } else if (typeof Hls !== 'undefined') {
-      playNativeHLS(url, resumeTime);
-    } else {
-      playNativeHLS(url, resumeTime);
-    }
-  } else if (isMedia && isHttp) {
-    playNative(url, resumeTime);
-  } else if (isHttp) {
-    playHLS(url, resumeTime);
-  } else {
-    container.innerHTML = '<div class="player-placeholder">⚠️ 不支持的播放地址格式<br><small>尝试切换"解析"模式</small></div>';
-  }
+  // In browser, direct HLS/m3u8 playback almost never works due to CORS
+  // Just use parse API immediately
+  playViaProxy(url, 0);
 }
 
-function playHLS(url, resumeTime) {
-  const container = document.getElementById('playerContainer');
-  const video = document.createElement('video');
-  video.controls = true;
-  video.autoplay = true;
-  video.playsInline = true;
-  video.setAttribute('webkit-playsinline', 'true');
-  video.setAttribute('x5-video-player-type', 'h5');
-  video.setAttribute('x5-video-player-fullscreen', 'true');
-  video.setAttribute('x5-video-orientation', 'landscape');
-  video.style.cssText = 'width:100%;height:100%;max-height:100%;object-fit:contain;';
-  container.appendChild(video);
+function playHLS(url, resumeTime) { playViaProxy(url, 0); }
+function playNativeHLS(url, resumeTime) { playViaProxy(url, 0); }
+function playNative(url, resumeTime) { playViaProxy(url, 0); }
 
-  try {
-    const hls = new Hls({
-      enableWorker: false,
-      lowLatencyMode: false,
-      startPosition: resumeTime || 0,
-      maxBufferLength: 30,
-      maxMaxBufferLength: 60,
-      manifestLoadingTimeOut: 15000,
-      manifestLoadingMaxRetry: 2,
-      levelLoadingTimeOut: 15000,
-      fragLoadingTimeOut: 20000
-    });
-
-    hls.loadSource(url);
-    hls.attachMedia(video);
-
-    hls.on(Hls.Events.MANIFEST_PARSED, () => {
-      if (resumeTime > 0) video.currentTime = resumeTime;
-      video.play().catch(e => console.warn('HLS autoplay failed:', e.message));
-    });
-
-    hls.on(Hls.Events.ERROR, (event, data) => {
-      if (data.fatal) {
-        switch (data.type) {
-          case Hls.ErrorTypes.NETWORK_ERROR:
-            hls.startLoad();
-            break;
-          case Hls.ErrorTypes.MEDIA_ERROR:
-            hls.recoverMediaError();
-            break;
-          default:
-            hls.destroy();
-            playViaProxy(url);
-            break;
-        }
-      }
-    });
-
-    playerVideo = video;
-    playerHls = hls;
-  } catch(e) {
-    video.remove();
-    playViaProxy(url);
-  }
-}
-
-function playNativeHLS(url, resumeTime) {
-  const container = document.getElementById('playerContainer');
-  const video = document.createElement('video');
-  video.controls = true;
-  video.autoplay = true;
-  video.playsInline = true;
-  video.src = url;
-  if (resumeTime > 0) video.currentTime = resumeTime;
-  video.style.cssText = 'width:100%;height:100%;max-height:100%;object-fit:contain;';
-  container.appendChild(video);
-  playerVideo = video;
-  video.play().catch(() => { video.remove(); playViaProxy(url); });
-}
-
-function playNative(url, resumeTime) {
-  const container = document.getElementById('playerContainer');
-  const video = document.createElement('video');
-  video.controls = true;
-  video.autoplay = true;
-  video.playsInline = true;
-  video.src = url;
-  if (resumeTime > 0) video.currentTime = resumeTime;
-  video.style.cssText = 'width:100%;height:100%;max-height:100%;object-fit:contain;';
-  container.appendChild(video);
-  playerVideo = video;
-
-  video.addEventListener('error', () => {
-    video.remove();
-    playerVideo = null;
-    playViaProxy(url);
-  });
-
-  video.play().catch(() => {});
-}
-
-function playViaProxy(url) {
+function playViaProxy(url, startIdx) {
   const container = document.getElementById('playerContainer');
   cleanupPlayer();
+
+  const idx = startIdx || 0;
+  if (idx >= PARSE_APIS.length) {
+    container.innerHTML = '<div class="player-placeholder">⚠️ 所有解析线路均不可用<br><small>请稍后再试或检查网络连接</small></div>';
+    return;
+  }
+
+  container.innerHTML = '<div class="player-placeholder">⏳ 正在连接解析线路 '+(idx+1)+'/'+PARSE_APIS.length+'...</div>';
 
   const encodedUrl = encodeURIComponent(url);
   const iframe = document.createElement('iframe');
   iframe.setAttribute('allowfullscreen', 'true');
   iframe.setAttribute('allow', 'autoplay; encrypted-media; picture-in-picture');
   iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-presentation allow-popups');
-  iframe.style.cssText = 'width:100%;height:100%;border:none;';
-  iframe.src = PARSE_APIS[0] + encodedUrl;
-  container.appendChild(iframe);
+  iframe.style.cssText = 'width:100%;height:100%;border:none;position:absolute;inset:0;';
+  iframe.src = PARSE_APIS[idx] + encodedUrl;
 
-  iframe.dataset.parseIdx = '0';
-  iframe.dataset.originalUrl = url;
-
-  const retryTimer = setTimeout(() => {
-    const idx = parseInt(iframe.dataset.parseIdx || '0');
+  // Auto-switch to next parse API if this one doesn't load in 6 seconds
+  const switchTimer = setTimeout(() => {
     if (idx + 1 < PARSE_APIS.length) {
-      iframe.dataset.parseIdx = String(idx + 1);
-      iframe.src = PARSE_APIS[idx + 1] + encodeURIComponent(iframe.dataset.originalUrl);
+      playViaProxy(url, idx + 1);
+    } else {
+      container.innerHTML = '<div class="player-placeholder">⚠️ 所有解析线路均超时<br><small>请检查网络连接后重试</small></div>';
     }
-  }, 8000);
+  }, 6000);
 
-  iframe.addEventListener('load', () => clearTimeout(retryTimer));
+  iframe.addEventListener('load', () => {
+    clearTimeout(switchTimer);
+    container.innerHTML = '';
+    container.appendChild(iframe);
+    parseApiIdx = idx;
+    const label = document.getElementById('currentParseLabel');
+    if (label) label.textContent = '解析' + (idx + 1);
+  });
+
+  iframe.addEventListener('error', () => {
+    clearTimeout(switchTimer);
+    if (idx + 1 < PARSE_APIS.length) {
+      playViaProxy(url, idx + 1);
+    }
+  });
+
+  container.innerHTML = '';
+  container.appendChild(iframe);
 }
 
 function cleanupPlayer() {
@@ -1479,12 +1418,24 @@ async function playItem(vodId, vodName) {
   document.getElementById('playerContainer').innerHTML = '<div class="player-placeholder">⏳ 获取播放地址...</div>';
   document.getElementById('playerTitle').textContent = vodName;
   showPlayer();
+  
+  // Set a safety timeout - if detail fetch takes >10s, show error
+  const safetyTimer = setTimeout(() => {
+    if (!currentPlayData) {
+      document.getElementById('playerContainer').innerHTML = '<div class="player-placeholder">⚠️ 获取超时<br><small>请检查网络后重试</small></div>';
+    }
+  }, 10000);
+
   try {
     const detail = await fetchDetail(vodId);
+    clearTimeout(safetyTimer);
     if (!detail || !detail.vod_play_url) { document.getElementById('playerContainer').innerHTML='<div class="player-placeholder">⚠️ 暂无播放资源</div>'; return; }
     currentPlayData = detail;
     openPlayer(detail);
-  } catch(e) { document.getElementById('playerContainer').innerHTML='<div class="player-placeholder">⚠️ 获取失败<br><small>'+(e.message||'')+'</small></div>'; }
+  } catch(e) {
+    clearTimeout(safetyTimer);
+    document.getElementById('playerContainer').innerHTML='<div class="player-placeholder">⚠️ 获取失败<br><small>'+(e.message||'')+'</small></div>';
+  }
 }
 
 function openPlayer(item) {
@@ -1538,8 +1489,10 @@ function playEpisode(url, btnEl, resumeTime) {
   document.getElementById('playerModeToggle').style.display = 'flex';
 
   cleanupPlayer();
-  resumeTime = resumeTime || 0;
-  playDirect(url, resumeTime);
+  currentPlayUrl = url;
+  parseApiIdx = 0;
+  // Always use parse API - direct HLS won't work in browser due to CORS
+  playViaProxy(url, 0);
 }
 
 function closePlayer() {
@@ -1554,6 +1507,13 @@ function closePlayer() {
   document.getElementById('playerModeToggle').style.display = 'none';
   currentPlayData = null;
   currentPlayUrl = '';
+}
+
+function switchParseLine() {
+  if (!currentPlayUrl) return;
+  parseApiIdx = (parseApiIdx + 1) % PARSE_APIS.length;
+  document.getElementById('currentParseLabel').textContent = '解析' + (parseApiIdx + 1);
+  playViaProxy(currentPlayUrl, parseApiIdx);
 }
 
 function startProgressSaver() { stopProgressSaver(); historySaveTimer = setInterval(() => { if(playerVideo&&currentPlayData) saveCurrentProgress(); }, 10000); }
