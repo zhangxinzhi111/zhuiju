@@ -1,5 +1,1 @@
-{
-  "version": 5,
-  "note": "v5: 紧凑UI+TMDB海报集成+修复页面跳回顶部bug",
-  "updated": "2026-06-02"
-}
+{"version":8,"date":"2026-06-02","note":"v8: 修复轮播自动播放(手动scrollTo) + 加载3页数据解决不全 + DDG/Bing搜索引擎补封面"}
