@@ -2,168 +2,475 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, shrink-to-fit=no">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#0f0f1a">
+<meta name="theme-color" content="#0a0a1a">
 <meta name="x5-fullscreen" content="true">
 <meta name="x5-page-mode" content="app">
-<meta name="browsermode" content="application">
-<meta name="full-screen" content="yes">
-<meta name="layoutmode" content="standard">
 <meta name="wap-font-scale" content="no">
-<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-<link rel="manifest" href="/manifest.json">
 <title>追剧 - 发现好剧，在线观影</title>
 <style>
 :root{
---bg:#0f0f1a;--surface:#1a1a2e;--surface2:#242440;--text:#e8e8f0;--text2:#9898b0;
---accent:#e85d75;--accent2:#7c5ce7;--gold:#f5c842;--green:#4ade80;
---radius:12px;--radius-sm:8px;
---safe-bottom:env(safe-area-inset-bottom, 16px);
---safe-top:env(safe-area-inset-top, 0px);
---status-bar:24px;
+--bg:#0a0a1a;--bg2:#111128;--surface:rgba(255,255,255,0.04);
+--surface2:rgba(255,255,255,0.08);--border:rgba(255,255,255,0.06);
+--text:#eaeaf4;--text2:#8a8aaa;--text3:#5a5a7a;
+--pink:#ff6b9d;--pink2:#c44569;--purple:#6c5ce7;--cyan:#00d2ff;
+--gold:#f9ca24;--green:#2ed573;--orange:#ff9f43;
+--radius:16px;--radius-sm:10px;--radius-xs:6px;
+--safe-bottom:env(safe-area-inset-bottom,12px);
+--safe-top:env(safe-area-inset-top,0px);
 }
 *{margin:0;padding:0;box-sizing:border-box;}
 body{
-font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
-background:var(--bg);color:var(--text);min-height:100dvh;padding-bottom:calc(64px + var(--safe-bottom));
--webkit-tap-highlight-color:transparent;-webkit-font-smoothing:antialiased;
+font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+background:linear-gradient(180deg,#0a0a1a 0%,#111128 50%,#0a0a1a 100%);
+color:var(--text);min-height:100dvh;
+padding-bottom:calc(60px + var(--safe-bottom));
+-webkit-tap-highlight-color:transparent;
+-webkit-font-smoothing:antialiased;
+overflow-x:hidden;
 }
-.header{position:sticky;top:0;z-index:100;background:var(--bg);padding:calc(var(--safe-top) + 10px) 16px 10px;border-bottom:1px solid rgba(255,255,255,0.06);}
-.header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
-.logo{font-size:22px;font-weight:800;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+body::before{
+content:'';position:fixed;top:-50%;left:-50%;width:200%;height:200%;
+background:radial-gradient(circle at 30% 20%,rgba(108,92,231,0.06) 0%,transparent 50%),
+radial-gradient(circle at 70% 60%,rgba(255,107,157,0.05) 0%,transparent 50%),
+radial-gradient(circle at 50% 80%,rgba(0,210,255,0.04) 0%,transparent 50%);
+pointer-events:none;z-index:0;
+}
+
+/* ===== HEADER ===== */
+.header{
+position:sticky;top:0;z-index:100;padding:calc(var(--safe-top) + 8px) 16px 8px;
+background:linear-gradient(180deg,var(--bg) 70%,transparent);
+backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+}
+.header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.logo{
+font-size:26px;font-weight:900;letter-spacing:2px;
+background:linear-gradient(135deg,var(--pink),var(--purple),var(--cyan));
+-webkit-background-clip:text;-webkit-text-fill-color:transparent;
+background-clip:text;position:relative;
+}
+.logo-sub{font-size:11px;color:var(--text3);margin-left:4px;font-weight:400;}
+.stats-row{display:flex;gap:12px;align-items:center;}
+.stat-badge{
+font-size:10px;padding:2px 10px;border-radius:20px;
+background:var(--surface2);color:var(--text2);white-space:nowrap;
+display:flex;align-items:center;gap:4px;
+}
+.stat-badge .dot{width:5px;height:5px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
 .search-box{display:flex;gap:8px;}
-.search-input{flex:1;height:40px;border-radius:20px;border:1.5px solid var(--surface2);background:var(--surface);color:var(--text);padding:0 16px;font-size:14px;outline:none;transition:border-color 0.2s;}
-.search-input:focus{border-color:var(--accent2);}
-.search-input::placeholder{color:var(--text2);}
-.search-btn{height:40px;padding:0 18px;border-radius:20px;border:none;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;}
-.search-btn:active{opacity:0.85;}
-.content{padding:0 16px 16px;}
-.page{display:none;}
+.search-input{
+flex:1;height:42px;border-radius:21px;border:1.5px solid var(--border);
+background:var(--surface);color:var(--text);padding:0 18px;font-size:14px;outline:none;
+transition:all 0.3s;
+}
+.search-input:focus{border-color:var(--purple);background:rgba(108,92,231,0.08);box-shadow:0 0 20px rgba(108,92,231,0.1);}
+.search-input::placeholder{color:var(--text3);}
+.search-btn{
+height:42px;padding:0 20px;border-radius:21px;border:none;
+background:linear-gradient(135deg,var(--pink),var(--purple));
+color:#fff;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;
+box-shadow:0 4px 15px rgba(108,92,231,0.3);
+transition:transform 0.2s,box-shadow 0.2s;
+}
+.search-btn:active{transform:scale(0.95);box-shadow:0 2px 8px rgba(108,92,231,0.2);}
+
+/* ===== CONTENT ===== */
+.content{padding:0 12px 12px;position:relative;z-index:1;}
+.page{display:none;animation:fadeIn 0.3s ease;}
 .page.active{display:block;}
-.section-title{font-size:17px;font-weight:700;margin:18px 0 10px;display:flex;align-items:center;gap:8px;}
-.result-list{display:flex;flex-direction:column;gap:10px;}
-.result-card{display:flex;gap:10px;background:var(--surface);border-radius:var(--radius);padding:10px;cursor:pointer;transition:transform 0.15s;}
-.result-card:active{transform:scale(0.98);}
-.result-card .poster-sm{width:72px;height:108px;border-radius:var(--radius-sm);background:var(--surface2);flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center;color:var(--text2);font-size:24px;font-weight:700;}
-.result-card .poster-sm img{width:100%;height:100%;object-fit:cover;}
-.result-card .detail{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;}
-.result-card .detail .title{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.result-card .detail .meta{font-size:11px;color:var(--text2);margin-top:4px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
-.result-card .detail .meta .tag{font-size:10px;padding:1px 7px;border-radius:8px;background:var(--surface2);}
-.result-card .detail .meta .tag.playable{background:rgba(74,222,128,0.15);color:var(--green);}
-.result-card .detail .desc{font-size:11px;color:var(--text2);margin-top:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.4;}
-.result-card .detail .actions{margin-top:6px;display:flex;gap:6px;}
-.btn-sm{height:28px;padding:0 12px;border-radius:14px;border:none;font-size:11px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:4px;}
-.btn-sm-play{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;}
-.btn-sm-fav{background:rgba(245,200,66,0.15);color:var(--gold);border:1px solid rgba(245,200,66,0.2);}
-.btn-sm-fav.active{background:var(--gold);color:var(--surface);border-color:var(--gold);}
-/* Player Page */
-.player-page{position:fixed;inset:0;z-index:300;background:#000;display:flex;flex-direction:column;}
-.player-header{display:flex;align-items:center;padding:8px 12px;gap:8px;background:rgba(0,0,0,0.8);z-index:10;}
-.player-header .back-btn{width:32px;height:32px;border-radius:50%;border:none;background:rgba(255,255,255,0.15);color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
-.player-header .player-title{flex:1;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.player-container{flex:1;background:#000;display:flex;align-items:center;justify-content:center;position:relative;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* ===== BANNER ===== */
+.banner-wrap{margin:0 -4px 16px;}
+.banner-scroll{
+display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;
+-webkit-overflow-scrolling:touch;padding:0 4px 4px;
+scrollbar-width:none;
+}
+.banner-scroll::-webkit-scrollbar{display:none;}
+.banner-card{
+flex:0 0 78vw;max-width:320px;height:180px;border-radius:var(--radius);
+overflow:hidden;position:relative;scroll-snap-align:start;
+cursor:pointer;transition:transform 0.2s;
+}
+.banner-card:active{transform:scale(0.97);}
+.banner-card img{width:100%;height:100%;object-fit:cover;}
+.banner-card .banner-bg{
+width:100%;height:100%;position:absolute;inset:0;
+background:linear-gradient(135deg,var(--purple),var(--pink2),var(--cyan));
+display:flex;align-items:center;justify-content:center;font-size:48px;
+}
+.banner-overlay{
+position:absolute;inset:0;
+background:linear-gradient(0deg,rgba(10,10,26,0.95) 0%,rgba(10,10,26,0.3) 40%,transparent 70%);
+}
+.banner-info{
+position:absolute;bottom:12px;left:14px;right:14px;z-index:2;
+}
+.banner-info .banner-title{font-size:16px;font-weight:800;margin-bottom:4px;text-shadow:0 2px 8px rgba(0,0,0,0.6);}
+.banner-info .banner-meta{font-size:11px;color:rgba(255,255,255,0.75);display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
+.banner-tag{padding:1px 8px;border-radius:10px;background:rgba(255,107,157,0.7);font-size:10px;color:#fff;}
+.banner-dots{
+display:flex;justify-content:center;gap:6px;margin-top:10px;
+}
+.banner-dot{
+width:6px;height:6px;border-radius:50%;background:var(--text3);
+transition:all 0.3s;
+}
+.banner-dot.active{background:var(--pink);width:18px;border-radius:3px;}
+
+/* ===== CATEGORY BAR ===== */
+.cat-bar{
+display:flex;gap:8px;overflow-x:auto;padding:4px 0 14px;
+scrollbar-width:none;-webkit-overflow-scrolling:touch;
+}
+.cat-bar::-webkit-scrollbar{display:none;}
+.cat-btn{
+flex:0 0 auto;height:34px;padding:0 16px;border-radius:17px;
+border:1px solid var(--border);background:var(--surface);
+color:var(--text2);font-size:13px;cursor:pointer;white-space:nowrap;
+transition:all 0.25s;font-weight:500;
+}
+.cat-btn.active{
+background:linear-gradient(135deg,var(--pink),var(--purple));
+border-color:transparent;color:#fff;font-weight:700;
+box-shadow:0 4px 12px rgba(108,92,231,0.25);
+}
+
+/* ===== WATERFALL GRID ===== */
+.section-header{
+display:flex;align-items:center;justify-content:space-between;
+margin:0 4px 12px;
+}
+.section-title{font-size:17px;font-weight:800;display:flex;align-items:center;gap:6px;}
+.section-title .icon{font-size:20px;}
+.section-count{font-size:11px;color:var(--text3);}
+.waterfall{
+display:grid;grid-template-columns:1fr 1fr;gap:10px;
+}
+/* ===== MOVIE CARD ===== */
+.movie-card{
+border-radius:var(--radius);overflow:hidden;background:var(--surface);
+border:1px solid var(--border);cursor:pointer;
+transition:transform 0.2s,box-shadow 0.2s;
+position:relative;
+}
+.movie-card:active{transform:scale(0.96);}
+.movie-card .card-poster{
+width:100%;aspect-ratio:3/4;position:relative;overflow:hidden;
+background:linear-gradient(135deg,var(--purple),var(--pink2));
+display:flex;align-items:center;justify-content:center;
+}
+.movie-card .card-poster img{
+width:100%;height:100%;object-fit:cover;transition:transform 0.4s,opacity 0.4s;
+opacity:0;
+}
+.movie-card .card-poster img.loaded{opacity:1;}
+.movie-card:hover .card-poster img{transform:scale(1.05);}
+.movie-card .card-poster .poster-fallback{
+position:absolute;inset:0;
+background:linear-gradient(135deg,var(--c1,var(--purple)),var(--c2,var(--pink2)));
+display:flex;align-items:center;justify-content:center;
+}
+.poster-fallback .pf-text{font-size:40px;font-weight:900;color:rgba(255,255,255,0.85);}
+.poster-fallback .pf-pattern{
+position:absolute;inset:0;opacity:0.08;
+background:repeating-linear-gradient(45deg,transparent,transparent 10px,rgba(255,255,255,0.1) 10px,rgba(255,255,255,0.1) 12px);
+}
+.card-poster .poster-gradient{
+position:absolute;bottom:0;left:0;right:0;height:50%;
+background:linear-gradient(0deg,rgba(10,10,26,0.9),transparent);
+z-index:2;
+}
+.card-poster .poster-label{
+position:absolute;bottom:8px;left:8px;z-index:3;
+font-size:11px;font-weight:700;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,0.6);
+display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+overflow:hidden;line-height:1.3;
+}
+.card-fav{
+position:absolute;top:6px;right:6px;z-index:5;
+width:30px;height:30px;border-radius:50%;
+background:rgba(0,0,0,0.4);backdrop-filter:blur(6px);
+border:none;display:flex;align-items:center;justify-content:center;
+cursor:pointer;font-size:16px;transition:all 0.2s;
+}
+.card-fav.active{background:var(--pink);}
+.movie-card .card-body{padding:8px 10px 10px;}
+.card-body .card-title{
+font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;
+text-overflow:ellipsis;margin-bottom:4px;
+}
+.card-body .card-tags{display:flex;gap:4px;flex-wrap:wrap;}
+.card-body .card-tags .tag{
+font-size:10px;padding:2px 8px;border-radius:8px;
+background:var(--surface2);color:var(--text2);
+}
+.card-body .card-tags .tag.hot{
+background:rgba(255,107,157,0.12);color:var(--pink);
+}
+
+/* ===== DETAIL SHEET ===== */
+.sheet-overlay{
+position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.6);
+backdrop-filter:blur(4px);display:none;align-items:flex-end;
+animation:fadeIn 0.2s ease;
+}
+.sheet-overlay.show{display:flex;}
+.sheet{
+width:100%;max-height:85vh;background:var(--bg2);
+border-radius:20px 20px 0 0;overflow-y:auto;
+animation:slideUp 0.35s cubic-bezier(0.16,1,0.3,1);
+}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.sheet-poster{
+width:100%;height:220px;position:relative;overflow:hidden;
+background:linear-gradient(135deg,var(--purple),var(--pink2));
+display:flex;align-items:center;justify-content:center;
+}
+.sheet-poster img{width:100%;height:100%;object-fit:cover;}
+.sheet-poster .sheet-fallback{font-size:80px;font-weight:900;color:rgba(255,255,255,0.6);}
+.sheet-close{
+position:absolute;top:12px;right:12px;z-index:5;
+width:32px;height:32px;border-radius:50%;
+background:rgba(0,0,0,0.4);backdrop-filter:blur(6px);
+border:none;color:#fff;font-size:16px;cursor:pointer;
+display:flex;align-items:center;justify-content:center;
+}
+.sheet-body{padding:16px;}
+.sheet-body h2{font-size:20px;font-weight:800;margin-bottom:8px;}
+.sheet-meta{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;}
+.sheet-meta .tag{
+font-size:11px;padding:3px 10px;border-radius:10px;
+background:var(--surface2);color:var(--text2);
+}
+.sheet-meta .tag.type{background:rgba(108,92,231,0.15);color:var(--purple);}
+.sheet-desc{
+font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:16px;
+display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;
+}
+.sheet-desc.expanded{-webkit-line-clamp:unset;}
+.sheet-actions{display:flex;gap:10px;padding-bottom:var(--safe-bottom);}
+.sheet-btn{
+flex:1;height:44px;border-radius:22px;border:none;font-size:14px;font-weight:700;
+cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;
+transition:transform 0.2s;
+}
+.sheet-btn:active{transform:scale(0.96);}
+.sheet-btn-play{
+background:linear-gradient(135deg,var(--pink),var(--purple));
+color:#fff;box-shadow:0 4px 16px rgba(108,92,231,0.35);
+}
+.sheet-btn-fav{
+background:var(--surface);color:var(--text2);border:1px solid var(--border);
+}
+.sheet-btn-fav.active{color:var(--pink);border-color:var(--pink);}
+
+/* ===== PLAYER ===== */
+.player-page{
+position:fixed;inset:0;z-index:300;background:#000;
+display:none;flex-direction:column;
+}
+.player-page.show{display:flex;}
+.player-header{
+display:flex;align-items:center;padding:8px 12px;gap:8px;
+background:rgba(0,0,0,0.85);z-index:10;
+}
+.player-header .back-btn{
+width:32px;height:32px;border-radius:50%;border:none;
+background:rgba(255,255,255,0.15);color:#fff;font-size:16px;
+cursor:pointer;display:flex;align-items:center;justify-content:center;
+}
+.player-title{flex:1;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.player-container{flex:1;background:#000;display:flex;align-items:center;justify-content:center;}
 .player-container video{width:100%;height:100%;max-height:100dvh;object-fit:contain;}
-.player-container .player-placeholder{text-align:center;color:var(--text2);padding:20px;}
-.episode-bar{padding:10px 12px;background:var(--surface);overflow-y:auto;max-height:180px;display:flex;flex-wrap:wrap;gap:6px;align-content:flex-start;scrollbar-width:thin;scrollbar-color:var(--surface2) transparent;flex-shrink:0;padding-bottom:calc(10px + var(--safe-bottom));}
-.episode-bar::-webkit-scrollbar{width:4px;}
-.episode-bar::-webkit-scrollbar-thumb{background:var(--surface2);border-radius:2px;}
-.episode-btn{flex:0 0 auto;min-width:48px;height:32px;border-radius:8px;border:1.5px solid var(--surface2);background:var(--surface);color:var(--text);font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;padding:0 10px;}
-.episode-btn.active{background:var(--accent2);border-color:var(--accent2);color:#fff;font-weight:600;}
-.episode-btn.watched{border-color:rgba(74,222,128,0.5);background:rgba(74,222,128,0.08);}
-.episode-btn.watched::after{content:' ✓';font-size:9px;color:var(--green);}
-.episode-btn.active.watched::after{color:#fff;}
-.source-select{padding:8px 12px;background:var(--surface);display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;border-top:1px solid rgba(255,255,255,0.06);flex-shrink:0;}
+.player-placeholder{text-align:center;color:var(--text2);padding:20px;}
+.source-select{
+padding:8px 12px;background:var(--bg2);display:flex;gap:6px;
+overflow-x:auto;scrollbar-width:none;border-top:1px solid var(--border);flex-shrink:0;
+}
 .source-select::-webkit-scrollbar{display:none;}
-.source-btn{flex:0 0 auto;height:28px;padding:0 12px;border-radius:14px;border:1px solid var(--surface2);background:var(--surface);color:var(--text2);font-size:11px;cursor:pointer;}
-.source-btn.active{background:rgba(124,92,231,0.2);border-color:var(--accent2);color:var(--accent2);}
-/* Bottom Nav */
-.bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:100;background:rgba(15,15,26,0.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,0.06);display:flex;padding-bottom:var(--safe-bottom);}
-.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px 0;gap:3px;border:none;background:none;color:var(--text2);font-size:10px;cursor:pointer;transition:color 0.2s;}
-.nav-item .nav-icon{font-size:18px;}
-.nav-item.active{color:var(--accent);}
-/* Favorites */
+.source-btn{
+flex-shrink:0;height:28px;padding:0 12px;border-radius:14px;
+border:1px solid var(--border);background:var(--surface);
+color:var(--text2);font-size:11px;cursor:pointer;transition:all 0.2s;
+}
+.source-btn.active{background:rgba(108,92,231,0.2);border-color:var(--purple);color:var(--purple);}
+.episode-bar{
+padding:10px 12px;background:var(--bg2);overflow-y:auto;max-height:160px;
+display:flex;flex-wrap:wrap;gap:6px;align-content:flex-start;
+scrollbar-width:thin;flex-shrink:0;
+padding-bottom:calc(10px + var(--safe-bottom));
+}
+.episode-bar::-webkit-scrollbar{width:3px;}
+.episode-bar::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+.episode-btn{
+flex:0 0 auto;min-width:44px;height:30px;border-radius:8px;
+border:1px solid var(--border);background:var(--surface);
+color:var(--text2);font-size:11px;cursor:pointer;
+display:flex;align-items:center;justify-content:center;
+transition:all 0.2s;padding:0 8px;
+}
+.episode-btn.active{background:var(--purple);border-color:var(--purple);color:#fff;font-weight:700;}
+.episode-btn.watched{border-color:rgba(46,213,115,0.4);background:rgba(46,213,115,0.06);}
+.episode-btn.watched::after{content:' ✓';font-size:8px;color:var(--green);margin-left:2px;}
+.episode-btn.active.watched::after{color:#fff;}
+
+/* ===== BOTTOM NAV ===== */
+.bottom-nav{
+position:fixed;bottom:0;left:0;right:0;z-index:100;
+background:rgba(10,10,26,0.88);backdrop-filter:blur(20px);
+-webkit-backdrop-filter:blur(20px);
+border-top:1px solid var(--border);
+display:flex;padding-bottom:var(--safe-bottom);
+}
+.nav-item{
+flex:1;display:flex;flex-direction:column;align-items:center;
+justify-content:center;padding:6px 0;gap:2px;
+border:none;background:none;color:var(--text3);font-size:10px;
+cursor:pointer;transition:color 0.2s;
+}
+.nav-item svg{width:20px;height:20px;opacity:0.5;transition:all 0.2s;}
+.nav-item.active{color:var(--pink);}
+.nav-item.active svg{opacity:1;filter:drop-shadow(0 2px 6px rgba(255,107,157,0.3));}
+
+/* ===== PULL REFRESH ===== */
+.pull-indicator{
+text-align:center;padding:0;color:var(--text3);font-size:12px;
+max-height:0;overflow:hidden;transition:max-height 0.3s;
+}
+.pull-indicator.show{max-height:40px;padding:8px;}
+.pull-spinner{
+display:inline-block;width:18px;height:18px;border:2px solid var(--border);
+border-top-color:var(--pink);border-radius:50%;
+animation:spin 0.7s linear infinite;margin-right:6px;vertical-align:middle;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ===== EMPTY / STATUS ===== */
+.empty-state{text-align:center;padding:50px 20px;color:var(--text3);}
+.empty-state .icon{font-size:48px;margin-bottom:12px;opacity:0.6;}
+.empty-state p{font-size:13px;line-height:1.7;}
+.status-bar{text-align:center;padding:16px;color:var(--text3);font-size:12px;}
+.status-bar.error{color:var(--pink);}
 .fav-actions{display:flex;justify-content:flex-end;margin-bottom:8px;}
-.btn-text{background:none;border:none;color:var(--accent);font-size:12px;cursor:pointer;padding:4px 8px;}
-.empty-state{text-align:center;padding:50px 20px;color:var(--text2);}
-.empty-state .icon{font-size:40px;margin-bottom:10px;}
-.empty-state p{font-size:13px;line-height:1.6;}
-/* Status */
-.status-bar{text-align:center;padding:12px;color:var(--text2);font-size:12px;}
-.status-bar.error{color:var(--accent);}
-/* Skeleton */
-.skeleton{background:linear-gradient(90deg,var(--surface) 25%,var(--surface2) 50%,var(--surface) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:var(--radius-sm);}
-@keyframes shimmer{0%{background-position:200% 0;}100%{background-position:-200% 0;}}
-.skeleton-poster{width:72px;height:108px;border-radius:var(--radius-sm);flex-shrink:0;}
-.skeleton-line{height:12px;margin-bottom:7px;border-radius:6px;}
-.skeleton-line.short{width:60%;}.skeleton-line.xshort{width:35%;}
-/* About */
-.about-card{background:var(--surface);border-radius:var(--radius);padding:20px;text-align:center;margin-top:20px;}
-.about-card h3{font-size:18px;margin-bottom:8px;}
-.about-card p{font-size:12px;color:var(--text2);line-height:1.8;}
+.btn-text{background:none;border:none;color:var(--pink);font-size:12px;cursor:pointer;padding:4px 8px;}
+
+/* ===== SKELETON ===== */
+.skeleton{
+background:linear-gradient(90deg,var(--surface) 25%,var(--surface2) 50%,var(--surface) 75%);
+background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:var(--radius-sm);
+}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.skeleton-card{height:260px;border-radius:var(--radius);overflow:hidden;}
+.skeleton-card .sk-poster{height:65%;}
+.skeleton-card .sk-body{padding:10px;}
+.skeleton-card .sk-line{height:10px;margin-bottom:6px;border-radius:5px;}
+.skeleton-card .sk-line.short{width:60%;}
+
+/* ===== TOAST ===== */
+.toast{
+position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:500;
+background:var(--purple);color:#fff;padding:8px 20px;border-radius:20px;
+font-size:13px;font-weight:600;box-shadow:0 4px 20px rgba(108,92,231,0.4);
+animation:toastIn 0.3s ease,toastOut 0.3s ease 1.8s forwards;
+pointer-events:none;
+}
+@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(-10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+@keyframes toastOut{from{opacity:1}to{opacity:0}}
 </style>
 </head>
 <body>
 
 <!-- Header -->
 <div class="header">
-<div class="header-top"><div class="logo">追剧</div></div>
+<div class="header-top">
+<div class="logo">追剧<span class="logo-sub">v4</span></div>
+<div class="stats-row">
+<span class="stat-badge"><span class="dot"></span><span id="updateCount">加载中</span></span>
+</div>
+</div>
 <div class="search-box">
-<input class="search-input" id="searchInput" type="text" placeholder="输入片名，搜索即播..."
+<input class="search-input" id="searchInput" type="text" placeholder="输入片名搜索..."
 onkeydown="if(event.key==='Enter')doSearch()">
 <button class="search-btn" onclick="doSearch()">搜索</button>
 </div>
 </div>
+
+<!-- Pull Refresh -->
+<div class="pull-indicator" id="pullIndicator"></div>
 
 <!-- Content -->
 <div class="content">
 
 <!-- 观影页 -->
 <div class="page active" id="page-watch">
-<div class="section-title">🔥 最近热播</div>
-<div class="result-list" id="hotList"></div>
+<div class="banner-wrap">
+<div class="banner-scroll" id="bannerScroll"></div>
+<div class="banner-dots" id="bannerDots"></div>
+</div>
+<div class="cat-bar" id="catBar"></div>
+<div class="section-header">
+<div class="section-title"><span class="icon">🎬</span>热播推荐</div>
+<div class="section-count" id="sectionCount"></div>
+</div>
+<div class="waterfall" id="waterfall"></div>
 <div class="status-bar" id="hotStatus"></div>
 </div>
 
-<!-- 搜索结果页 -->
+<!-- 搜索页 -->
 <div class="page" id="page-search">
-<div class="section-title">🔍 搜索 "<span id="searchQuery"></span>"</div>
-<div class="result-list" id="searchResults"></div>
+<div class="section-header">
+<div class="section-title"><span class="icon">🔍</span>搜索 "<span id="searchQuery"></span>"</div>
+</div>
+<div class="waterfall" id="searchResults"></div>
 <div class="status-bar" id="searchStatus"></div>
 </div>
 
 <!-- 收藏页 -->
 <div class="page" id="page-favorites">
 <div class="fav-actions"><button class="btn-text" onclick="clearFavorites()">清空全部</button></div>
-<div class="result-list" id="favList"></div>
+<div class="waterfall" id="favGrid"></div>
 <div class="empty-state" id="favEmpty">
-<div class="icon">💔</div><p>还没有收藏<br>去观影页搜索好剧吧~</p>
+<div class="icon">💔</div><p>还没有收藏<br>去首页发现好剧吧~</p>
 </div>
 </div>
 
 <!-- 历史页 -->
 <div class="page" id="page-history">
 <div class="fav-actions"><button class="btn-text" onclick="clearHistory()">清空全部</button></div>
-<div class="result-list" id="historyList"></div>
+<div class="waterfall" id="historyGrid"></div>
 <div class="empty-state" id="historyEmpty">
 <div class="icon">📺</div><p>暂无观看记录<br>去搜一部剧开始追吧~</p>
 </div>
 </div>
-
-<!-- 关于页 -->
-<div class="page" id="page-about">
-<div class="about-card">
-<h3>📺 追剧</h3>
-<p>聚合全网影视资源<br>搜索即播，免费观影<br>数据来源：苹果CMS采集接口<br>播放器：HLS.js / HTML5 Video<br><br><small>v2.0 独立版 · 无需电脑</small></p>
-</div>
-</div>
 </div>
 
-<!-- 播放器页面 -->
-<div class="player-page" id="playerPage" style="display:none;">
+<!-- 详情浮层 -->
+<div class="sheet-overlay" id="sheetOverlay" onclick="if(event.target===this)closeSheet()">
+<div class="sheet" id="sheet">
+<div class="sheet-poster" id="sheetPoster">
+<button class="sheet-close" onclick="closeSheet()">✕</button>
+</div>
+<div class="sheet-body">
+<h2 id="sheetTitle"></h2>
+<div class="sheet-meta" id="sheetMeta"></div>
+<div class="sheet-desc" id="sheetDesc" onclick="this.classList.toggle('expanded')"></div>
+<div class="sheet-actions">
+<button class="sheet-btn sheet-btn-play" id="sheetPlayBtn">▶ 立即播放</button>
+<button class="sheet-btn sheet-btn-fav" id="sheetFavBtn">🤍 收藏</button>
+</div>
+</div>
+</div>
+</div>
+
+<!-- 播放器 -->
+<div class="player-page" id="playerPage">
 <div class="player-header">
 <button class="back-btn" onclick="closePlayer()">✕</button>
 <div class="player-title" id="playerTitle">播放中</div>
@@ -177,52 +484,74 @@ onkeydown="if(event.key==='Enter')doSearch()">
 
 <!-- Bottom Nav -->
 <div class="bottom-nav">
-<button class="nav-item active" onclick="switchPage('watch')"><span class="nav-icon">🎬</span>观影</button>
-<button class="nav-item" onclick="switchPage('search')"><span class="nav-icon">🔍</span>搜索</button>
-<button class="nav-item" onclick="switchPage('favorites')"><span class="nav-icon">❤️</span>收藏</button>
-<button class="nav-item" onclick="switchPage('history')"><span class="nav-icon">🕐</span>历史</button>
-<button class="nav-item" onclick="switchPage('about')"><span class="nav-icon">ℹ️</span>关于</button>
+<button class="nav-item active" onclick="switchPage('watch')">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+观影
+</button>
+<button class="nav-item" onclick="switchPage('search')">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+搜索
+</button>
+<button class="nav-item" onclick="switchPage('favorites')">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+收藏
+</button>
+<button class="nav-item" onclick="switchPage('history')">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+历史
+</button>
 </div>
 
-<!-- HLS.js -->
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
 <script>
 // ============ CONFIG ============
-// 版本号（云更新用，每次改代码请 +1）
-const APP_VERSION = 3;
-// 云更新地址（部署到 EdgeOne Pages 后填写你的 URL）
+const APP_VERSION = 4;
 const UPDATE_URL = 'https://zhangxinzhi111.github.io/zhuiju/';
-
-// API 基础地址（苹果CMS采集接口）
 const API_BASE = 'https://api.apibdzy.com/api.php/provide/vod/';
-
-// CORS 代理列表（当直连被 CORS 拦截时，依次尝试）
-const CORS_PROXIES = [
-  'https://api.codetabs.com/v1/proxy?quest=',
-  'https://api.allorigins.win/raw?url=',
-  'https://corsproxy.io/?',
-  'https://cors-anywhere.herokuapp.com/',
-];
-
-// 视频解析接口（备用）
-const PARSE_APIS = [
-  'https://vip.52jiexi.top/?url=',
-  'https://jx.m3u8.tv/jiexi/?url=',
-  'https://www.kpezp.cn/jlexi.php?url=',
-];
+const CORS_PROXIES = ['https://api.codetabs.com/v1/proxy?quest='];
+const PARSE_APIS = ['https://vip.52jiexi.top/?url='];
+const CACHE_KEY = 'zhuiju_cache';
+const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
 
 let currentPage = 'watch';
+let currentCategory = '全部';
+let allMovies = [];
 let favorites = JSON.parse(localStorage.getItem('zhuiju_favs') || '[]');
 let history = JSON.parse(localStorage.getItem('zhuiju_history') || '[]');
 let playerVideo = null;
 let currentSourceIdx = 0;
 let currentEpIdx = 0;
-let historySaveTimer = null; // 定时保存播放进度
+let historySaveTimer = null;
+let currentPlayData = null;
+let sheetData = null;
+let bannerTimer = null;
+let bannerIdx = 0;
+let bannerItems = [];
 
-// CORS 模式：0=未知, 1=直连可用, 2=需代理
-// 优先走代理（codetabs 稳定），直连在手机上大概率被 CORS 拦截
-let corsMode = 2;
-let activeCorsProxy = 0;
+// ============ POSTER COLORS ============
+const POSTER_COLORS = [
+  ['#ff6b9d','#c44569'],['#6c5ce7','#a29bfe'],['#00d2ff','#0097e6'],
+  ['#f9ca24','#f0932b'],['#2ed573','#7bed9f'],['#ff9f43','#ee5a24'],
+  ['#e056a0','#a83279'],['#1e90ff','#3742fa']
+];
+
+function posterColor(name) {
+  let h = 0; for(let i=0;i<(name||'').length;i++){h=((h<<5)-h)+(name.charCodeAt(i)||0);h|=0;}
+  return POSTER_COLORS[Math.abs(h) % POSTER_COLORS.length];
+}
+
+function posterHTML(item, size) {
+  const c = posterColor(item.vod_name);
+  if (item.vod_pic && item.vod_pic.startsWith('http')) {
+    return '<img src="'+item.vod_pic+'" loading="lazy" onload="this.classList.add(\'loaded\')" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'">' +
+      '<div class="poster-fallback" style="--c1:'+c[0]+';--c2:'+c[1]+';display:none"><div class="pf-pattern"></div><div class="pf-text">'+(item.vod_name||'?')[0]+'</div></div>';
+  }
+  return '<div class="poster-fallback" style="--c1:'+c[0]+';--c2:'+c[1]+'"><div class="pf-pattern"></div><div class="pf-text">'+(item.vod_name||'?')[0]+'</div></div>';
+}
+
+function escapeHTML(s) {
+  if(!s)return'';const d=document.createElement('div');d.textContent=s;return d.innerHTML;
+}
 
 // ============ API ============
 function buildApiUrl(ac, params) {
@@ -234,592 +563,528 @@ function buildApiUrl(ac, params) {
   return url;
 }
 
-async function tryApiCall(params) {
+async function apiCall(params) {
   const ac = params.ac || 'list';
   const directUrl = buildApiUrl(ac, params);
-  let lastError = null;
-
-  // 策略1：如果已知直连可用，直接请求
-  if (corsMode === 1) {
-    try {
-      return await fetchAndParse(directUrl, ac);
-    } catch (e) {
-      // 直连失败，降级到代理
-      corsMode = 2;
-    }
-  }
-
-  // 策略2：如果已知需要代理，直接用代理
-  if (corsMode === 2) {
-    for (let i = activeCorsProxy; i < CORS_PROXIES.length; i++) {
-      try {
-        const proxyUrl = CORS_PROXIES[i] + encodeURIComponent(directUrl);
-        const result = await fetchAndParse(proxyUrl, ac);
-        activeCorsProxy = i;
-        return result;
-      } catch (e) {
-        lastError = e;
-        continue;
-      }
-    }
-    // 所有代理都失败，尝试直连
-    try {
-      const result = await fetchAndParse(directUrl, ac);
-      corsMode = 1;
-      return result;
-    } catch (e2) {
-      throw lastError || e2;
-    }
-  }
-
-  // 策略3：未知模式，先尝试直连
-  try {
-    const result = await fetchAndParse(directUrl, ac);
-    corsMode = 1;
-    return result;
-  } catch (e) {
-    // 直连失败，尝试代理
-    for (let i = 0; i < CORS_PROXIES.length; i++) {
-      try {
-        const proxyUrl = CORS_PROXIES[i] + encodeURIComponent(directUrl);
-        const result = await fetchAndParse(proxyUrl, ac);
-        corsMode = 2;
-        activeCorsProxy = i;
-        return result;
-      } catch (e2) {
-        lastError = e2;
-        continue;
-      }
-    }
-    throw lastError || e;
+  const proxyUrl = CORS_PROXIES[0] + encodeURIComponent(directUrl);
+  try { return await fetchAndParse(proxyUrl, ac); }
+  catch(e1) {
+    try { return await fetchAndParse(directUrl, ac); }
+    catch(e2) { throw e1; }
   }
 }
 
 async function fetchAndParse(url, ac) {
   const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
-  if (!res.ok) {
-    const errText = await res.text().catch(() => '');
-    throw new Error('HTTP ' + res.status + ': ' + errText.substring(0, 100));
-  }
+  if (!res.ok) throw new Error('HTTP '+res.status);
   const text = await res.text();
   let data;
-  try { data = JSON.parse(text); } catch (e) {
+  try { data = JSON.parse(text); } catch(e) {
     if (ac === 'detail') throw new Error('详情解析失败');
     const list = parseXMLVod(text);
-    if (list.length > 0) return { list, total: list.length };
+    if (list.length) return { list, total: list.length };
     throw new Error('API 返回格式异常');
   }
-
   if (ac === 'detail') {
     const item = data.list ? data.list[0] : data;
     if (!item || !item.vod_id) throw new Error('详情数据为空');
     return {
-      vod_id: item.vod_id,
-      vod_name: item.vod_name || item.title,
+      vod_id: item.vod_id, vod_name: item.vod_name || item.title,
       vod_pic: item.vod_pic || item.pic || '',
-      vod_remarks: item.vod_remarks || '',
-      vod_play_url: item.vod_play_url || '',
-      vod_play_from: item.vod_play_from || '',
-      type_name: item.type_name || item.type || '',
-      vod_actor: item.vod_actor || '',
-      vod_director: item.vod_director || '',
-      vod_blurb: item.vod_blurb || '',
-      vod_content: item.vod_content || '',
-      vod_year: item.vod_year || '',
-      vod_area: item.vod_area || '',
+      vod_remarks: item.vod_remarks || '', vod_play_url: item.vod_play_url || '',
+      vod_play_from: item.vod_play_from || '', type_name: item.type_name || item.type || '',
+      vod_actor: item.vod_actor || '', vod_director: item.vod_director || '',
+      vod_blurb: item.vod_blurb || '', vod_content: item.vod_content || '',
+      vod_year: item.vod_year || '', vod_area: item.vod_area || ''
     };
   }
-
   const list = (data.list || data.data || []).map(item => ({
-    vod_id: item.vod_id,
-    vod_name: item.vod_name || item.title,
-    vod_pic: item.vod_pic || item.pic || '',
-    vod_remarks: item.vod_remarks || '',
-    vod_play_url: item.vod_play_url || '',
-    vod_play_from: item.vod_play_from || '',
-    type_name: item.type_name || item.type || '',
+    vod_id: item.vod_id, vod_name: item.vod_name || item.title,
+    vod_pic: item.vod_pic || item.pic || '', vod_remarks: item.vod_remarks || '',
+    vod_play_url: item.vod_play_url || '', vod_play_from: item.vod_play_from || '',
+    type_name: item.type_name || item.type || ''
   }));
   return { list, total: data.total || list.length };
 }
 
-async function fetchDetail(vodId) {
-  return tryApiCall({ ac: 'detail', ids: vodId });
-}
-
-function parseXMLVod(xmlStr) {
+function parseXMLVod(xml) {
   const items = [];
-  const regex = /<vod>([\s\S]*?)<\/vod>/g;
-  let match;
-  while ((match = regex.exec(xmlStr)) !== null) {
-    const block = match[1];
-    const getTag = (tag) => {
-      const m = block.match(new RegExp('<' + tag + '>(?:<!\\[CDATA\\[)?([\\s\\S]*?)(?:\\]\\]>)?<\\/' + tag + '>'));
-      return m ? m[1].trim() : '';
-    };
-    items.push({
-      vod_id: getTag('vod_id'),
-      vod_name: getTag('vod_name'),
-      vod_pic: getTag('vod_pic'),
-      vod_remarks: getTag('vod_remarks'),
-      vod_play_url: getTag('vod_play_url'),
-      vod_play_from: getTag('vod_play_from'),
-      type_name: getTag('type_name'),
-    });
+  const re = /<vod>([\s\S]*?)<\/vod>/g; let m;
+  while ((m = re.exec(xml)) !== null) {
+    const b = m[1];
+    const g = t => { const r = b.match(new RegExp('<'+t+'>(?:<!\\[CDATA\\[)?([\\s\\S]*?)(?:\\]\\]>)?<\\/'+t+'>')); return r ? r[1].trim() : ''; };
+    items.push({ vod_id:g('vod_id'), vod_name:g('vod_name'), vod_pic:g('vod_pic'),
+      vod_remarks:g('vod_remarks'), vod_play_url:g('vod_play_url'),
+      vod_play_from:g('vod_play_from'), type_name:g('type_name') });
   }
   return items;
 }
 
-// ============ 播放地址解析 ============
+async function fetchDetail(vodId) { return apiCall({ ac: 'detail', ids: vodId }); }
+
 function parsePlayUrls(playUrl, playFrom) {
   if (!playUrl) return [];
   const sources = playUrl.split('$$$');
-  const fromNames = playFrom ? playFrom.split('$$$') : [];
+  const names = playFrom ? playFrom.split('$$$') : [];
   const result = [];
-  sources.forEach((source, si) => {
-    const name = fromNames[si] || '线路' + (si + 1);
+  sources.forEach((src, si) => {
+    const name = names[si] || '线路'+(si+1);
     const eps = [];
-    const parts = source.split('#');
-    parts.forEach(part => {
+    src.split('#').forEach(part => {
       const sep = part.lastIndexOf('$');
-      if (sep > 0) {
-        const label = part.substring(0, sep).trim();
-        const url = part.substring(sep + 1).trim();
-        if (url) eps.push({ label, url });
-      }
+      if (sep > 0) { const label = part.substring(0,sep).trim(), url = part.substring(sep+1).trim(); if(url) eps.push({label,url}); }
     });
-    if (eps.length > 0) result.push({ name, eps });
+    if (eps.length) result.push({name, eps});
   });
   return result;
 }
 
-// ============ RENDER ============
-function posterHTML(item) {
-  if (item.vod_pic && item.vod_pic.startsWith('http')) {
-    return '<img src="' + item.vod_pic + '" loading="lazy" onerror="this.outerHTML=\'<div style=width:100%;height:100%;background:linear-gradient(135deg,#7c5ce7,#e85d75);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:#fff>' + (item.vod_name||'?')[0] + '</div>\'">';
-  }
-  const c = ['#e85d75','#7c5ce7','#4facfe','#43e97b','#f5c842','#fa709a'][Math.abs(hashCode(item.vod_name||''))%6];
-  return '<div style="width:100%;height:100%;background:linear-gradient(135deg,' + c + ',' + c + '88);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:#fff">' + (item.vod_name||'?')[0] + '</div>';
+// ============ CACHE ============
+function getCache() {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+    const cache = JSON.parse(raw);
+    if (Date.now() - cache.cachedAt > CACHE_TTL) return null;
+    return cache;
+  } catch(e) { return null; }
 }
 
-function hashCode(s) { let h=0; for(let i=0;i<s.length;i++){h=((h<<5)-h)+s.charCodeAt(i);h|=0;} return Math.abs(h); }
-
-function escapeHTML(str) {
-  if (!str) return '';
-  const d = document.createElement('div');
-  d.textContent = str;
-  return d.innerHTML;
+function setCache(data) {
+  localStorage.setItem(CACHE_KEY, JSON.stringify({ data, cachedAt: Date.now() }));
 }
 
-function renderResultCard(item) {
+// ============ RENDER: BANNER ============
+function renderBanner(items) {
+  const scroll = document.getElementById('bannerScroll');
+  const dots = document.getElementById('bannerDots');
+  bannerItems = items.slice(0, 5);
+  bannerIdx = 0;
+
+  scroll.innerHTML = bannerItems.map((item, i) => {
+    const c = posterColor(item.vod_name);
+    const pic = item.vod_pic && item.vod_pic.startsWith('http');
+    return '<div class="banner-card" onclick="openSheet('+item.vod_id+',\''+escapeHTML(item.vod_name).replace(/'/g,"\\'")+'\')">'+
+      (pic ? '<img src="'+item.vod_pic+'" loading="lazy" onerror="this.style.display=\'none\'">' : '')+
+      '<div class="banner-bg" style="'+(pic?'display:none':'')+'background:linear-gradient(135deg,'+c[0]+','+c[1]+')">'+ (item.vod_name||'?')[0] +'</div>'+
+      '<div class="banner-overlay"></div>'+
+      '<div class="banner-info">'+
+      '<div class="banner-title">'+escapeHTML(item.vod_name)+'</div>'+
+      '<div class="banner-meta">'+
+      (item.type_name?'<span class="banner-tag">'+escapeHTML(item.type_name)+'</span>':'')+
+      (item.vod_remarks?'<span>'+escapeHTML(item.vod_remarks)+'</span>':'')+
+      '</div></div></div>';
+  }).join('');
+
+  dots.innerHTML = bannerItems.map((_,i) => '<div class="banner-dot'+(i===0?' active':'')+'" onclick="scrollBanner('+i+')"></div>').join('');
+
+  // Auto scroll
+  if (bannerTimer) clearInterval(bannerTimer);
+  bannerTimer = setInterval(() => {
+    bannerIdx = (bannerIdx + 1) % bannerItems.length;
+    scrollBanner(bannerIdx);
+  }, 4000);
+
+  // Touch scroll sync
+  scroll.addEventListener('scroll', () => {
+    const idx = Math.round(scroll.scrollLeft / (scroll.clientWidth * 0.85));
+    if (idx !== bannerIdx && idx < bannerItems.length) {
+      bannerIdx = idx;
+      updateBannerDots();
+    }
+  });
+}
+
+function scrollBanner(idx) {
+  const scroll = document.getElementById('bannerScroll');
+  const cards = scroll.querySelectorAll('.banner-card');
+  if (cards[idx]) cards[idx].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+  bannerIdx = idx;
+  updateBannerDots();
+}
+
+function updateBannerDots() {
+  document.querySelectorAll('.banner-dot').forEach((d, i) => d.classList.toggle('active', i === bannerIdx));
+}
+
+// ============ RENDER: CATEGORY ============
+const CATEGORIES = ['全部', '电影', '电视剧', '动漫', '综艺'];
+
+function renderCategoryBar() {
+  document.getElementById('catBar').innerHTML = CATEGORIES.map(c =>
+    '<button class="cat-btn'+(c===currentCategory?' active':'')+'" onclick="filterCategory(\''+c+'\')">'+c+'</button>'
+  ).join('');
+}
+
+function filterCategory(cat) {
+  currentCategory = cat;
+  renderCategoryBar();
+  renderWaterfall();
+}
+
+// ============ RENDER: WATERFALL ============
+function renderMovieCard(item) {
   const id = item.vod_id;
-  const isFaved = isFav(id);
-  const hasPlay = !!item.vod_play_url;
-  const nameEscaped = escapeHTML(item.vod_name);
-  const nameSafe = nameEscaped.replace(/'/g, "\\'");
-  return '<div class="result-card">' +
-    '<div class="poster-sm">' + posterHTML(item) + '</div>' +
-    '<div class="detail">' +
-    '<div class="title">' + nameEscaped + '</div>' +
-    '<div class="meta">' +
-    (item.type_name ? '<span class="tag">' + escapeHTML(item.type_name) + '</span>' : '') +
-    (item.vod_remarks ? '<span class="tag">' + escapeHTML(item.vod_remarks) + '</span>' : '') +
-    (hasPlay ? '<span class="tag playable">可播放</span>' : '') +
-    '</div>' +
-    '<div class="actions">' +
-    '<button class="btn-sm btn-sm-play" onclick="event.stopPropagation();currentEpIdx=0;playItem(' + id + ',\'' + nameSafe + '\')">▶ 播放</button>' +
-    '<button class="btn-sm btn-sm-fav' + (isFaved ? ' active' : '') + '" onclick="event.stopPropagation();toggleFavItem({vod_id:' + id + ',vod_name:\'' + nameSafe + '\',vod_pic:\'' + (item.vod_pic||'').replace(/'/g,"\\'") + '\',vod_remarks:\'' + (item.vod_remarks||'').replace(/'/g,"\\'") + '\'})">' + (isFaved ? '❤️' : '🤍') + '</button>' +
-    '</div>' +
-    '</div>' +
-    '</div>';
+  const name = escapeHTML(item.vod_name);
+  const nameSafe = name.replace(/'/g, "\\'");
+  const isFaved = favorites.some(f => f.vod_id === id);
+  return '<div class="movie-card" onclick="openSheet('+id+',\''+nameSafe+'\')">'+
+    '<div class="card-poster">'+
+    posterHTML(item)+
+    '<div class="poster-gradient"></div>'+
+    '<div class="poster-label">'+name+'</div>'+
+    '<button class="card-fav'+(isFaved?' active':'')+'" onclick="event.stopPropagation();quickFav('+id+',\''+nameSafe+'\',\''+(item.vod_pic||'').replace(/'/g,"\\'")+'\',\''+(item.vod_remarks||'').replace(/'/g,"\\'")+'\')">'+(isFaved?'❤️':'🤍')+'</button>'+
+    '</div>'+
+    '<div class="card-body">'+
+    '<div class="card-title">'+name+'</div>'+
+    '<div class="card-tags">'+
+    (item.type_name?'<span class="tag hot">'+escapeHTML(item.type_name)+'</span>':'')+
+    (item.vod_remarks?'<span class="tag">'+escapeHTML(item.vod_remarks)+'</span>':'')+
+    '</div></div></div>';
 }
 
 function renderSkeletons(count) {
-  count = count || 6;
-  var h = '';
-  for (var i = 0; i < count; i++) {
-    h += '<div class="result-card"><div class="skeleton skeleton-poster"></div><div class="detail"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line short"></div><div class="skeleton skeleton-line xshort"></div></div></div>';
-  }
+  let h = '';
+  for (let i = 0; i < count; i++) h += '<div class="skeleton-card"><div class="skeleton sk-poster"></div><div class="sk-body"><div class="skeleton sk-line"></div><div class="skeleton sk-line short"></div></div></div>';
   return h;
 }
 
+function getFilteredMovies() {
+  if (currentCategory === '全部') return allMovies;
+  return allMovies.filter(m => {
+    const t = (m.type_name || '').toLowerCase();
+    const c = currentCategory;
+    if (c === '电影') return t.includes('电影') || t.includes('movie');
+    if (c === '电视剧') return t.includes('电视') || t.includes('剧') || t.includes('tv');
+    if (c === '动漫') return t.includes('动漫') || t.includes('动画') || t.includes('anime');
+    if (c === '综艺') return t.includes('综艺') || t.includes('variety');
+    return true;
+  });
+}
+
+function renderWaterfall() {
+  const filtered = getFilteredMovies();
+  document.getElementById('waterfall').innerHTML = filtered.map(renderMovieCard).join('');
+  document.getElementById('sectionCount').textContent = '共 '+filtered.length+' 部';
+}
+
+// ============ SHEET (Detail) ============
+async function openSheet(vodId, vodName) {
+  const overlay = document.getElementById('sheetOverlay');
+  overlay.classList.add('show');
+  document.getElementById('sheetTitle').textContent = vodName;
+  document.getElementById('sheetMeta').innerHTML = '<span class="tag">加载中...</span>';
+  document.getElementById('sheetDesc').textContent = '';
+  document.getElementById('sheetPoster').innerHTML = '<button class="sheet-close" onclick="closeSheet()">✕</button><div class="sheet-fallback">🎬</div>';
+
+  try {
+    const detail = await fetchDetail(vodId);
+    sheetData = detail;
+
+    // Poster
+    const c = posterColor(detail.vod_name);
+    if (detail.vod_pic && detail.vod_pic.startsWith('http')) {
+      document.getElementById('sheetPoster').innerHTML = '<button class="sheet-close" onclick="closeSheet()">✕</button><img src="'+detail.vod_pic+'" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'"><div class="sheet-fallback" style="display:none;background:linear-gradient(135deg,'+c[0]+','+c[1]+')">'+(detail.vod_name||'?')[0]+'</div>';
+    } else {
+      document.getElementById('sheetPoster').innerHTML = '<button class="sheet-close" onclick="closeSheet()">✕</button><div class="sheet-fallback" style="background:linear-gradient(135deg,'+c[0]+','+c[1]+')">'+(detail.vod_name||'?')[0]+'</div>';
+    }
+
+    // Title
+    document.getElementById('sheetTitle').textContent = detail.vod_name;
+
+    // Meta
+    let metaHTML = '';
+    if (detail.type_name) metaHTML += '<span class="tag type">'+escapeHTML(detail.type_name)+'</span>';
+    if (detail.vod_year) metaHTML += '<span class="tag">'+escapeHTML(detail.vod_year)+'</span>';
+    if (detail.vod_area) metaHTML += '<span class="tag">'+escapeHTML(detail.vod_area)+'</span>';
+    if (detail.vod_remarks) metaHTML += '<span class="tag">'+escapeHTML(detail.vod_remarks)+'</span>';
+    document.getElementById('sheetMeta').innerHTML = metaHTML || '<span class="tag">暂无信息</span>';
+
+    // Description
+    const desc = detail.vod_blurb || detail.vod_content || '暂无简介';
+    document.getElementById('sheetDesc').textContent = desc;
+    document.getElementById('sheetDesc').classList.remove('expanded');
+
+    // Fav button
+    const isFaved = favorites.some(f => f.vod_id === detail.vod_id);
+    const favBtn = document.getElementById('sheetFavBtn');
+    favBtn.textContent = isFaved ? '❤️ 已收藏' : '🤍 收藏';
+    favBtn.className = 'sheet-btn sheet-btn-fav' + (isFaved ? ' active' : '');
+    favBtn.onclick = () => {
+      toggleFavItem({vod_id: detail.vod_id, vod_name: detail.vod_name, vod_pic: detail.vod_pic, vod_remarks: detail.vod_remarks});
+      const nowFaved = favorites.some(f => f.vod_id === detail.vod_id);
+      favBtn.textContent = nowFaved ? '❤️ 已收藏' : '🤍 收藏';
+      favBtn.className = 'sheet-btn sheet-btn-fav' + (nowFaved ? ' active' : '');
+      renderWaterfall();
+    };
+
+    // Play button
+    document.getElementById('sheetPlayBtn').onclick = () => {
+      closeSheet();
+      playItem(detail.vod_id, detail.vod_name);
+    };
+
+  } catch(e) {
+    document.getElementById('sheetDesc').textContent = '加载详情失败: ' + (e.message || '未知错误');
+  }
+}
+
+function closeSheet() {
+  document.getElementById('sheetOverlay').classList.remove('show');
+  sheetData = null;
+}
+
 // ============ FAVORITES ============
-function isFav(id) { return favorites.some(function(f) { return f.vod_id === id; }); }
+function isFav(id) { return favorites.some(f => f.vod_id === id); }
+
+function quickFav(id, name, pic, remarks) {
+  toggleFavItem({vod_id: id, vod_name: name, vod_pic: pic, vod_remarks: remarks});
+  renderWaterfall();
+  if (currentPage === 'favorites') renderFavorites();
+}
 
 function toggleFavItem(item) {
-  var idx = -1;
-  for (var i = 0; i < favorites.length; i++) {
-    if (favorites[i].vod_id === item.vod_id) { idx = i; break; }
-  }
+  const idx = favorites.findIndex(f => f.vod_id === item.vod_id);
   if (idx >= 0) favorites.splice(idx, 1);
   else favorites.unshift(Object.assign({}, item, { savedAt: Date.now() }));
   saveFavorites();
+  showToast(favorites.some(f=>f.vod_id===item.vod_id) ? '已收藏 ❤️' : '已取消收藏');
 }
 
 function saveFavorites() {
   localStorage.setItem('zhuiju_favs', JSON.stringify(favorites));
-  renderFavorites();
 }
 
 function clearFavorites() {
   if (!favorites.length) return;
-  if (!confirm('确定清空全部 ' + favorites.length + ' 个收藏？')) return;
+  if (!confirm('确定清空全部 '+favorites.length+' 个收藏？')) return;
   favorites = [];
   saveFavorites();
+  renderFavorites();
+}
+
+function renderFavorites() {
+  const grid = document.getElementById('favGrid');
+  const empty = document.getElementById('favEmpty');
+  if (favorites.length === 0) { grid.innerHTML = ''; empty.style.display = 'block'; }
+  else { grid.innerHTML = favorites.map(renderMovieCard).join(''); empty.style.display = 'none'; }
 }
 
 // ============ HISTORY ============
 function saveHistoryEntry(vodId, vodName, vodPic, sourceIdx, epIdx, epLabel, epUrl, currentTime, totalSources, totalEps, watchedEps) {
-  // 合并已看集数（去重）
-  var existing = history.find(function(h) { return h.vod_id === vodId; });
-  var allWatched = watchedEps || [];
-  if (existing && existing.watched_eps) {
-    allWatched = existing.watched_eps.concat(allWatched).filter(function(v, i, a) { return a.indexOf(v) === i; });
-  }
-  // 先移除同一剧集的旧记录
-  history = history.filter(function(h) { return h.vod_id !== vodId; });
-  // 新记录放最前面
-  history.unshift({
-    vod_id: vodId,
-    vod_name: vodName,
-    vod_pic: vodPic || '',
-    source_idx: sourceIdx,
-    ep_idx: epIdx,
-    ep_label: epLabel,
-    ep_url: epUrl,
-    current_time: currentTime || 0,
-    total_sources: totalSources,
-    total_eps: totalEps,
-    watched_eps: allWatched,
-    watched_at: Date.now()
-  });
-  // 最多保留50条
+  let existing = history.find(h => h.vod_id === vodId);
+  let allWatched = watchedEps || [];
+  if (existing && existing.watched_eps) allWatched = existing.watched_eps.concat(allWatched).filter((v,i,a) => a.indexOf(v)===i);
+  history = history.filter(h => h.vod_id !== vodId);
+  history.unshift({ vod_id: vodId, vod_name: vodName, vod_pic: vodPic||'', source_idx: sourceIdx,
+    ep_idx: epIdx, ep_label: epLabel, ep_url: epUrl, current_time: currentTime||0,
+    total_sources: totalSources, total_eps: totalEps, watched_eps: allWatched, watched_at: Date.now() });
   if (history.length > 50) history = history.slice(0, 50);
   localStorage.setItem('zhuiju_history', JSON.stringify(history));
 }
 
 function saveCurrentProgress() {
   if (!currentPlayData || !playerVideo) return;
-  var allSources = parsePlayUrls(currentPlayData.vod_play_url, currentPlayData.vod_play_from);
-  var src = allSources[currentSourceIdx];
+  const allSources = parsePlayUrls(currentPlayData.vod_play_url, currentPlayData.vod_play_from);
+  const src = allSources[currentSourceIdx];
   if (!src || !src.eps[currentEpIdx]) return;
-  var ep = src.eps[currentEpIdx];
-  var t = playerVideo.currentTime || 0;
-
-  // 收集已看集数（当前源的所有已点过的集）
-  var watchedEps = [currentEpIdx];
-  var existing = history.find(function(h) { return h.vod_id === currentPlayData.vod_id; });
-  if (existing && existing.watched_eps) {
-    watchedEps = existing.watched_eps.concat(watchedEps).filter(function(v, i, a) { return a.indexOf(v) === i; });
-  }
-
-  saveHistoryEntry(
-    currentPlayData.vod_id,
-    currentPlayData.vod_name,
-    currentPlayData.vod_pic,
-    currentSourceIdx,
-    currentEpIdx,
-    ep.label,
-    ep.url,
-    t,
-    allSources.length,
-    src.eps.length,
-    watchedEps
-  );
+  const ep = src.eps[currentEpIdx];
+  const t = playerVideo.currentTime || 0;
+  let watchedEps = [currentEpIdx];
+  const existing = history.find(h => h.vod_id === currentPlayData.vod_id);
+  if (existing && existing.watched_eps) watchedEps = existing.watched_eps.concat(watchedEps).filter((v,i,a)=>a.indexOf(v)===i);
+  saveHistoryEntry(currentPlayData.vod_id, currentPlayData.vod_name, currentPlayData.vod_pic,
+    currentSourceIdx, currentEpIdx, ep.label, ep.url, t, allSources.length, src.eps.length, watchedEps);
 }
 
 function deleteHistoryEntry(vodId) {
-  history = history.filter(function(h) { return h.vod_id !== vodId; });
+  history = history.filter(h => h.vod_id !== vodId);
   localStorage.setItem('zhuiju_history', JSON.stringify(history));
   renderHistory();
 }
 
 function clearHistory() {
   if (!history.length) return;
-  if (!confirm('确定清空全部 ' + history.length + ' 条观看记录？')) return;
+  if (!confirm('确定清空全部 '+history.length+' 条记录？')) return;
   history = [];
   localStorage.setItem('zhuiju_history', JSON.stringify(history));
   renderHistory();
 }
 
 function formatTimeAgo(ts) {
-  var diff = Date.now() - ts;
+  const diff = Date.now() - ts;
   if (diff < 60000) return '刚刚';
-  if (diff < 3600000) return Math.floor(diff / 60000) + '分钟前';
-  if (diff < 86400000) return Math.floor(diff / 3600000) + '小时前';
-  if (diff < 604800000) return Math.floor(diff / 86400000) + '天前';
-  var d = new Date(ts);
-  return (d.getMonth() + 1) + '/' + d.getDate();
+  if (diff < 3600000) return Math.floor(diff/60000)+'分钟前';
+  if (diff < 86400000) return Math.floor(diff/3600000)+'小时前';
+  if (diff < 604800000) return Math.floor(diff/86400000)+'天前';
+  const d = new Date(ts);
+  return (d.getMonth()+1)+'/'+d.getDate();
+}
+
+function formatDuration(s) {
+  if (!s || s<1) return '0:00';
+  const m = Math.floor(s/60), sec = Math.floor(s%60);
+  return m+':'+(sec<10?'0':'')+sec;
 }
 
 function renderHistory() {
-  var list = document.getElementById('historyList');
-  var empty = document.getElementById('historyEmpty');
-  if (history.length === 0) {
-    list.innerHTML = '';
-    empty.style.display = 'block';
-  } else {
-    list.innerHTML = history.map(function(h) {
-      var progress = h.total_eps > 0 ? '第' + (h.ep_idx + 1) + '/' + h.total_eps + '集' : h.ep_label;
-      var timeStr = h.current_time > 0 ? ' · ' + formatDuration(h.current_time) : '';
-      var nameEscaped = escapeHTML(h.vod_name);
-      var nameSafe = nameEscaped.replace(/'/g, "\\'");
-      return '<div class="result-card" onclick="resumeFromHistory(' + h.vod_id + ',' + h.source_idx + ',' + h.ep_idx + ')">' +
-        '<div class="poster-sm">' + posterHTML(h) + '</div>' +
-        '<div class="detail">' +
-        '<div class="title">' + nameEscaped + '</div>' +
-        '<div class="meta">' +
-        '<span class="tag playable">' + escapeHTML(progress) + '</span>' +
-        (h.current_time > 0 ? '<span class="tag">已看' + formatDuration(h.current_time) + '</span>' : '') +
-        '</div>' +
-        '<div class="desc">' + formatTimeAgo(h.watched_at) + '观看</div>' +
-        '<div class="actions">' +
-        '<button class="btn-sm btn-sm-play" onclick="event.stopPropagation();resumeFromHistory(' + h.vod_id + ',' + h.source_idx + ',' + h.ep_idx + ')">▶ 继续</button>' +
-        '<button class="btn-sm btn-sm-fav" onclick="event.stopPropagation();deleteHistoryEntry(' + h.vod_id + ')" style="background:rgba(232,93,117,0.15);color:#e85d75;border:1px solid rgba(232,93,117,0.2);">✕</button>' +
-        '</div>' +
-        '</div>' +
-        '</div>';
-    }).join('');
-    empty.style.display = 'none';
-  }
-}
-
-function formatDuration(seconds) {
-  if (!seconds || seconds < 1) return '0:00';
-  var m = Math.floor(seconds / 60);
-  var s = Math.floor(seconds % 60);
-  return m + ':' + (s < 10 ? '0' : '') + s;
+  const grid = document.getElementById('historyGrid');
+  const empty = document.getElementById('historyEmpty');
+  if (history.length === 0) { grid.innerHTML = ''; empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+  grid.innerHTML = history.map(h => {
+    const progress = h.total_eps > 0 ? '第'+(h.ep_idx+1)+'/'+h.total_eps+'集' : h.ep_label;
+    const name = escapeHTML(h.vod_name);
+    const nameSafe = name.replace(/'/g,"\\'");
+    return '<div class="movie-card" onclick="resumeFromHistory('+h.vod_id+','+h.source_idx+','+h.ep_idx+')">'+
+      '<div class="card-poster">'+posterHTML(h)+
+      '<div class="poster-gradient"></div>'+
+      '<div class="poster-label">'+name+'</div>'+
+      '<button class="card-fav" onclick="event.stopPropagation();deleteHistoryEntry('+h.vod_id+')" style="font-size:14px">✕</button>'+
+      '</div>'+
+      '<div class="card-body">'+
+      '<div class="card-title">'+name+'</div>'+
+      '<div class="card-tags">'+
+      '<span class="tag hot">'+escapeHTML(progress)+'</span>'+
+      (h.current_time>0?'<span class="tag">'+formatDuration(h.current_time)+'</span>':'')+
+      '<span class="tag">'+formatTimeAgo(h.watched_at)+'</span>'+
+      '</div></div></div>';
+  }).join('');
 }
 
 async function resumeFromHistory(vodId, sourceIdx, epIdx) {
-  var container = document.getElementById('playerContainer');
+  const container = document.getElementById('playerContainer');
   container.innerHTML = '<div class="player-placeholder">⏳ 正在恢复播放...</div>';
-  var page = document.getElementById('playerPage');
-  page.style.display = 'flex';
-  document.querySelector('.bottom-nav').style.display = 'none';
-  document.querySelector('.header').style.display = 'none';
-  document.body.style.overflow = 'hidden';
-
+  showPlayer();
   try {
-    var detail = await fetchDetail(vodId);
-    if (!detail || !detail.vod_play_url) {
-      container.innerHTML = '<div class="player-placeholder">⚠️ 该影片暂无播放资源</div>';
-      return;
-    }
+    const detail = await fetchDetail(vodId);
+    if (!detail || !detail.vod_play_url) { container.innerHTML='<div class="player-placeholder">⚠️ 暂无播放资源</div>'; return; }
     currentPlayData = detail;
     document.getElementById('playerTitle').textContent = detail.vod_name;
-
-    var allSources = parsePlayUrls(detail.vod_play_url, detail.vod_play_from);
-    if (allSources.length === 0) {
-      container.innerHTML = '<div class="player-placeholder">⚠️ 无法解析播放地址</div>';
-      return;
-    }
-
-    // 恢复线路
-    currentSourceIdx = Math.min(sourceIdx, allSources.length - 1);
-    var src = allSources[currentSourceIdx];
-
-    var sourceSel = document.getElementById('sourceSelect');
-    sourceSel.innerHTML = allSources.map(function(s, i) {
-      return '<button class="source-btn' + (i === currentSourceIdx ? ' active' : '') + '" onclick="switchSource(' + i + ')">' + escapeHTML(s.name) + '</button>';
-    }).join('');
-
-    // 恢复集数
-    currentEpIdx = Math.min(epIdx, src.eps.length - 1);
+    const allSources = parsePlayUrls(detail.vod_play_url, detail.vod_play_from);
+    if (!allSources.length) { container.innerHTML='<div class="player-placeholder">⚠️ 无法解析播放地址</div>'; return; }
+    currentSourceIdx = Math.min(sourceIdx, allSources.length-1);
+    const src = allSources[currentSourceIdx];
+    document.getElementById('sourceSelect').innerHTML = allSources.map((s,i)=>
+      '<button class="source-btn'+(i===currentSourceIdx?' active':'')+'" onclick="switchSource('+i+')">'+escapeHTML(s.name)+'</button>'
+    ).join('');
+    currentEpIdx = Math.min(epIdx, src.eps.length-1);
     renderEpisodes(src, currentEpIdx);
-
     document.getElementById('playerPage').dataset.sources = JSON.stringify(allSources);
-
-    // 恢复播放时间点
-    var histEntry = history.find(function(h) { return h.vod_id === vodId; });
-    var resumeTime = histEntry ? histEntry.current_time || 0 : 0;
-    playEpisode(src.eps[currentEpIdx].url, null, resumeTime);
-  } catch (e) {
-    container.innerHTML = '<div class="player-placeholder">⚠️ 恢复播放失败<br><small>' + (e.message || '') + '</small></div>';
-  }
+    const histEntry = history.find(h => h.vod_id === vodId);
+    playEpisode(src.eps[currentEpIdx].url, null, histEntry ? histEntry.current_time||0 : 0);
+  } catch(e) { container.innerHTML='<div class="player-placeholder">⚠️ 恢复失败<br><small>'+(e.message||'')+'</small></div>'; }
 }
 
 // ============ PLAYER ============
-var currentPlayData = null;
-
-async function playItem(vodId, vodName) {
-  var container = document.getElementById('playerContainer');
-  container.innerHTML = '<div class="player-placeholder">⏳ 正在获取播放地址...</div>';
-  var page = document.getElementById('playerPage');
-  page.style.display = 'flex';
-  document.getElementById('playerTitle').textContent = vodName;
+function showPlayer() {
+  const page = document.getElementById('playerPage');
+  page.classList.add('show');
   document.querySelector('.bottom-nav').style.display = 'none';
   document.querySelector('.header').style.display = 'none';
   document.body.style.overflow = 'hidden';
+}
 
+async function playItem(vodId, vodName) {
+  document.getElementById('playerContainer').innerHTML = '<div class="player-placeholder">⏳ 获取播放地址...</div>';
+  document.getElementById('playerTitle').textContent = vodName;
+  showPlayer();
   try {
-    var detail = await fetchDetail(vodId);
-    if (!detail || !detail.vod_play_url) {
-      container.innerHTML = '<div class="player-placeholder">⚠️ 该影片暂无播放资源<br><small>可能未收录或接口异常</small></div>';
-      return;
-    }
+    const detail = await fetchDetail(vodId);
+    if (!detail || !detail.vod_play_url) { document.getElementById('playerContainer').innerHTML='<div class="player-placeholder">⚠️ 暂无播放资源</div>'; return; }
     currentPlayData = detail;
     openPlayer(detail);
-  } catch (e) {
-    container.innerHTML = '<div class="player-placeholder">⚠️ 获取播放资源失败<br><small>' + (e.message || '') + '</small></div>';
-  }
+  } catch(e) { document.getElementById('playerContainer').innerHTML='<div class="player-placeholder">⚠️ 获取失败<br><small>'+(e.message||'')+'</small></div>'; }
 }
 
 function openPlayer(item) {
-  var page = document.getElementById('playerPage');
-  page.style.display = 'flex';
+  showPlayer();
   document.getElementById('playerTitle').textContent = item.vod_name;
-  document.querySelector('.bottom-nav').style.display = 'none';
-  document.querySelector('.header').style.display = 'none';
-  document.body.style.overflow = 'hidden';
-
-  var allSources = parsePlayUrls(item.vod_play_url, item.vod_play_from);
-  if (allSources.length === 0) {
-    document.getElementById('playerContainer').innerHTML = '<div class="player-placeholder">⚠️ 无法解析播放地址</div>';
-    return;
-  }
-
-  var sourceSel = document.getElementById('sourceSelect');
-  sourceSel.innerHTML = allSources.map(function(s, i) {
-    return '<button class="source-btn' + (i === 0 ? ' active' : '') + '" onclick="switchSource(' + i + ')">' + escapeHTML(s.name) + '</button>';
-  }).join('');
-
-  currentSourceIdx = 0;
-  currentEpIdx = 0;
+  const allSources = parsePlayUrls(item.vod_play_url, item.vod_play_from);
+  if (!allSources.length) { document.getElementById('playerContainer').innerHTML='<div class="player-placeholder">⚠️ 无法解析播放地址</div>'; return; }
+  document.getElementById('sourceSelect').innerHTML = allSources.map((s,i)=>
+    '<button class="source-btn'+(i===0?' active':'')+'" onclick="switchSource('+i+')">'+escapeHTML(s.name)+'</button>'
+  ).join('');
+  currentSourceIdx = 0; currentEpIdx = 0;
   renderEpisodes(allSources[0], 0);
   playEpisode(allSources[0].eps[0].url);
-
-  page.dataset.sources = JSON.stringify(allSources);
-
-  // 启动定时保存进度（每10秒）
+  document.getElementById('playerPage').dataset.sources = JSON.stringify(allSources);
   startProgressSaver();
 }
 
 function switchSource(idx) {
-  currentSourceIdx = idx;
-  currentEpIdx = 0;
-  var allSources = JSON.parse(document.getElementById('playerPage').dataset.sources);
-  var btns = document.querySelectorAll('.source-btn');
-  for (var i = 0; i < btns.length; i++) btns[i].classList.toggle('active', i === idx);
+  currentSourceIdx = idx; currentEpIdx = 0;
+  const allSources = JSON.parse(document.getElementById('playerPage').dataset.sources);
+  document.querySelectorAll('.source-btn').forEach((b,i) => b.classList.toggle('active', i===idx));
   renderEpisodes(allSources[idx], 0);
-  if (allSources[idx].eps.length > 0) {
-    playEpisode(allSources[idx].eps[0].url);
-  }
+  if (allSources[idx].eps.length) playEpisode(allSources[idx].eps[0].url);
 }
 
 function renderEpisodes(source, activeIdx) {
-  activeIdx = activeIdx || 0;
-  var bar = document.getElementById('episodeBar');
-  // 获取已看过的集数（从历史记录中）
-  var watchedEps = [];
-  if (currentPlayData) {
-    var hist = history.find(function(h) { return h.vod_id === currentPlayData.vod_id; });
-    if (hist) watchedEps = hist.watched_eps || [];
-  }
-
-  bar.innerHTML = source.eps.map(function(ep, i) {
-    var cls = 'episode-btn';
+  let watchedEps = [];
+  if (currentPlayData) { const h = history.find(x => x.vod_id === currentPlayData.vod_id); if (h) watchedEps = h.watched_eps || []; }
+  const bar = document.getElementById('episodeBar');
+  bar.innerHTML = source.eps.map((ep,i) => {
+    let cls = 'episode-btn';
     if (i === activeIdx) cls += ' active';
     if (watchedEps.indexOf(i) >= 0) cls += ' watched';
-    return '<button class="' + cls + '" onclick="playEpisode(\'' + ep.url.replace(/'/g, "\\'") + '\', this)">' + escapeHTML(ep.label) + '</button>';
+    return '<button class="'+cls+'" onclick="playEpisode(\''+ep.url.replace(/'/g,"\\'")+'\',this)">'+escapeHTML(ep.label)+'</button>';
   }).join('');
-
-  // 滚动到当前集
-  setTimeout(function() {
-    var activeBtn = bar.querySelector('.episode-btn.active');
-    if (activeBtn) {
-      activeBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
-  }, 100);
+  setTimeout(() => { const btn = bar.querySelector('.episode-btn.active'); if(btn) btn.scrollIntoView({behavior:'smooth',block:'nearest'}); }, 100);
 }
 
 function playEpisode(url, btnEl, resumeTime) {
   if (btnEl) {
-    var btns = document.querySelectorAll('.episode-btn');
-    for (var i = 0; i < btns.length; i++) {
-      btns[i].classList.remove('active');
-      if (btns[i] === btnEl) currentEpIdx = i;
-    }
+    document.querySelectorAll('.episode-btn').forEach((b,i) => { b.classList.remove('active'); if(b===btnEl) currentEpIdx=i; });
     btnEl.classList.add('active');
   }
-  var container = document.getElementById('playerContainer');
-  if (playerVideo) {
-    if (playerVideo.hls) { playerVideo.hls.destroy(); playerVideo.hls = null; }
-    playerVideo.pause();
-    playerVideo.remove();
-    playerVideo = null;
-  }
+  const container = document.getElementById('playerContainer');
+  if (playerVideo) { if(playerVideo.hls){playerVideo.hls.destroy();playerVideo.hls=null;} playerVideo.pause(); playerVideo.remove(); playerVideo=null; }
   container.innerHTML = '';
-
   resumeTime = resumeTime || 0;
 
-  if (url.indexOf('.m3u8') >= 0 || url.indexOf('/m3u8/') >= 0) {
+  if (url.indexOf('.m3u8')>=0 || url.indexOf('/m3u8/')>=0) {
     if (typeof Hls !== 'undefined' && Hls.isSupported()) {
-      var video = document.createElement('video');
-      video.controls = true;
-      video.autoplay = true;
-      video.playsInline = true;
-      video.setAttribute('x5-video-player-type', 'h5');
-      video.setAttribute('x5-video-player-fullscreen', 'true');
-      video.style.cssText = 'width:100%;height:100%;max-height:100dvh;object-fit:contain;';
+      const video = document.createElement('video');
+      video.controls=true; video.autoplay=true; video.playsInline=true;
+      video.setAttribute('x5-video-player-type','h5');
+      video.setAttribute('x5-video-player-fullscreen','true');
+      video.style.cssText='width:100%;height:100%;max-height:100dvh;object-fit:contain;';
       container.appendChild(video);
-      var hls = new Hls({ enableWorker: false, startPosition: resumeTime });
-      hls.loadSource(url);
-      hls.attachMedia(video);
-      hls.on(Hls.Events.MANIFEST_PARSED, function() {
-        if (resumeTime > 0) video.currentTime = resumeTime;
-        video.play().catch(function(){});
-      });
-      hls.on(Hls.Events.ERROR, function(e, d) {
-        if (d.fatal) tryParseFallback(url);
-      });
-      playerVideo = video;
-      video.hls = hls;
+      const hls = new Hls({enableWorker:false, startPosition:resumeTime});
+      hls.loadSource(url); hls.attachMedia(video);
+      hls.on(Hls.Events.MANIFEST_PARSED, () => { if(resumeTime>0) video.currentTime=resumeTime; video.play().catch(()=>{}); });
+      hls.on(Hls.Events.ERROR, (e,d) => { if(d.fatal) tryParseFallback(url); });
+      playerVideo = video; video.hls = hls;
     } else {
-      var video2 = document.createElement('video');
-      video2.controls = true;
-      video2.autoplay = true;
-      video2.playsInline = true;
-      video2.src = url;
-      if (resumeTime > 0) video2.currentTime = resumeTime;
-      video2.style.cssText = 'width:100%;height:100%;max-height:100dvh;object-fit:contain;';
-      container.appendChild(video2);
-      playerVideo = video2;
-      video2.play().catch(function() { tryParseFallback(url); });
+      const video = document.createElement('video');
+      video.controls=true; video.autoplay=true; video.playsInline=true;
+      video.src=url; if(resumeTime>0) video.currentTime=resumeTime;
+      video.style.cssText='width:100%;height:100%;max-height:100dvh;object-fit:contain;';
+      container.appendChild(video); playerVideo=video;
+      video.play().catch(()=>tryParseFallback(url));
     }
-  } else if (url.indexOf('http') === 0) {
-    var video3 = document.createElement('video');
-    video3.controls = true;
-    video3.autoplay = true;
-    video3.playsInline = true;
-    video3.src = url;
-    if (resumeTime > 0) video3.currentTime = resumeTime;
-    video3.style.cssText = 'width:100%;height:100%;max-height:100dvh;object-fit:contain;';
-    container.appendChild(video3);
-    playerVideo = video3;
-    video3.play().catch(function() { tryParseFallback(url); });
+  } else if (url.indexOf('http')===0) {
+    const video = document.createElement('video');
+    video.controls=true; video.autoplay=true; video.playsInline=true;
+    video.src=url; if(resumeTime>0) video.currentTime=resumeTime;
+    video.style.cssText='width:100%;height:100%;max-height:100dvh;object-fit:contain;';
+    container.appendChild(video); playerVideo=video;
+    video.play().catch(()=>tryParseFallback(url));
   } else {
-    container.innerHTML = '<div class="player-placeholder">⚠️ 不支持的播放地址格式</div>';
+    container.innerHTML='<div class="player-placeholder">⚠️ 不支持的播放地址</div>';
   }
 }
 
 function tryParseFallback(url) {
-  var container = document.getElementById('playerContainer');
-  var parseUrl = PARSE_APIS[0] + encodeURIComponent(url);
-  container.innerHTML = '<iframe src="' + parseUrl + '" style="width:100%;height:100%;border:none;" allowfullscreen allow="autoplay;encrypted-media"></iframe>';
+  document.getElementById('playerContainer').innerHTML = '<iframe src="'+PARSE_APIS[0]+encodeURIComponent(url)+'" style="width:100%;height:100%;border:none" allowfullscreen allow="autoplay;encrypted-media"></iframe>';
 }
 
 function closePlayer() {
-  // 关闭前保存进度
   stopProgressSaver();
   saveCurrentProgress();
-
-  if (playerVideo) {
-    if (playerVideo.hls) { playerVideo.hls.destroy(); playerVideo.hls = null; }
-    playerVideo.pause();
-    playerVideo.remove();
-    playerVideo = null;
-  }
-  document.getElementById('playerPage').style.display = 'none';
+  if (playerVideo) { if(playerVideo.hls){playerVideo.hls.destroy();playerVideo.hls=null;} playerVideo.pause(); playerVideo.remove(); playerVideo=null; }
+  document.getElementById('playerPage').classList.remove('show');
   document.querySelector('.bottom-nav').style.display = 'flex';
   document.querySelector('.header').style.display = 'block';
   document.body.style.overflow = '';
@@ -827,175 +1092,169 @@ function closePlayer() {
   currentPlayData = null;
 }
 
-// 定时保存进度（每10秒）
-function startProgressSaver() {
-  stopProgressSaver();
-  historySaveTimer = setInterval(function() {
-    if (playerVideo && currentPlayData) {
-      saveCurrentProgress();
-    }
-  }, 10000);
-}
-
-function stopProgressSaver() {
-  if (historySaveTimer) {
-    clearInterval(historySaveTimer);
-    historySaveTimer = null;
-  }
-}
+function startProgressSaver() { stopProgressSaver(); historySaveTimer = setInterval(() => { if(playerVideo&&currentPlayData) saveCurrentProgress(); }, 10000); }
+function stopProgressSaver() { if(historySaveTimer){clearInterval(historySaveTimer);historySaveTimer=null;} }
 
 // ============ PAGES ============
 function switchPage(page) {
   currentPage = page;
-  var pages = document.querySelectorAll('.page');
-  for (var i = 0; i < pages.length; i++) pages[i].classList.remove('active');
-  var target = document.getElementById('page-' + page);
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const target = document.getElementById('page-'+page);
   if (target) target.classList.add('active');
-
-  var navItems = document.querySelectorAll('.nav-item');
-  var navTexts = { watch: '观影', search: '搜索', favorites: '收藏', history: '历史', about: '关于' };
-  for (var j = 0; j < navItems.length; j++) {
-    navItems[j].classList.remove('active');
-    if (navItems[j].textContent.indexOf(navTexts[page]) >= 0) navItems[j].classList.add('active');
-  }
-
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const navs = {watch:0, search:1, favorites:2, history:3};
+  if (navs[page] !== undefined) document.querySelectorAll('.nav-item')[navs[page]].classList.add('active');
   if (page === 'favorites') renderFavorites();
   if (page === 'history') renderHistory();
-  if (page === 'search') document.getElementById('searchResults').innerHTML = '<div class="empty-state"><div class="icon">🔍</div><p>在上方搜索框输入片名搜索</p></div>';
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  window.scrollTo({top:0, behavior:'smooth'});
 }
 
+// ============ SEARCH ============
 async function doSearch() {
-  var query = document.getElementById('searchInput').value.trim();
+  const query = document.getElementById('searchInput').value.trim();
   if (!query) return;
-
   switchPage('search');
   document.getElementById('searchQuery').textContent = query;
-  document.getElementById('searchResults').innerHTML = renderSkeletons(5);
+  document.getElementById('searchResults').innerHTML = '<div class="waterfall">'+renderSkeletons(6)+'</div>';
   document.getElementById('searchStatus').textContent = '';
-
   try {
-    var result = await tryApiCall({ wd: query });
+    const result = await apiCall({ wd: query });
     document.getElementById('searchResults').innerHTML = result.list.length > 0
-      ? result.list.map(renderResultCard).join('')
+      ? '<div class="waterfall">'+result.list.map(renderMovieCard).join('')+'</div>'
       : '<div class="empty-state"><div class="icon">🔍</div><p>没有找到相关影片<br>试试其他关键词</p></div>';
-  } catch (e) {
+  } catch(e) {
     document.getElementById('searchResults').innerHTML = '';
-    document.getElementById('searchStatus').textContent = '搜索失败: ' + (e.message || '未知错误');
+    document.getElementById('searchStatus').textContent = '搜索失败: '+(e.message||'未知错误');
     document.getElementById('searchStatus').classList.add('error');
   }
 }
 
-function renderFavorites() {
-  var list = document.getElementById('favList');
-  var empty = document.getElementById('favEmpty');
-  if (favorites.length === 0) {
-    list.innerHTML = '';
-    empty.style.display = 'block';
-  } else {
-    list.innerHTML = favorites.map(renderResultCard).join('');
-    empty.style.display = 'none';
+// ============ PULL REFRESH ============
+let pullStartY = 0, pulling = false;
+document.addEventListener('touchstart', e => {
+  if (window.scrollY === 0 && currentPage === 'watch') pullStartY = e.touches[0].clientY;
+}, {passive: true});
+document.addEventListener('touchmove', e => {
+  if (pullStartY && window.scrollY === 0 && currentPage === 'watch') {
+    const dy = e.touches[0].clientY - pullStartY;
+    if (dy > 60 && !pulling) {
+      pulling = true;
+      refreshData();
+    }
   }
+}, {passive: true});
+document.addEventListener('touchend', () => { pullStartY = 0; pulling = false; });
+
+async function refreshData() {
+  const indicator = document.getElementById('pullIndicator');
+  indicator.innerHTML = '<span class="pull-spinner"></span>正在刷新...';
+  indicator.classList.add('show');
+  try {
+    const result = await apiCall({});
+    const oldCount = allMovies.length;
+    allMovies = result.list || [];
+    setCache(allMovies);
+    renderBanner(allMovies.slice(0, 5));
+    renderWaterfall();
+    const newCount = allMovies.length - oldCount;
+    indicator.innerHTML = '✅ 更新完成'+(newCount>0?'，新增 '+newCount+' 部':'');
+    updateStats();
+    setTimeout(() => indicator.classList.remove('show'), 2000);
+  } catch(e) {
+    indicator.innerHTML = '⚠️ 刷新失败，请检查网络';
+    setTimeout(() => indicator.classList.remove('show'), 2000);
+  }
+}
+
+// ============ TOAST ============
+function showToast(msg) {
+  const t = document.createElement('div'); t.className='toast'; t.textContent=msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2200);
+}
+
+// ============ STATS ============
+function updateStats() {
+  document.getElementById('updateCount').textContent = allMovies.length + ' 部资源';
 }
 
 // ============ INIT ============
-async function loadHotList() {
-  document.getElementById('hotList').innerHTML = renderSkeletons(4);
-  try {
-    var result = await tryApiCall({});
-    document.getElementById('hotList').innerHTML = result.list.length > 0
-      ? result.list.slice(0, 20).map(renderResultCard).join('')
-      : '<div class="status-bar">暂无数据，请检查网络</div>';
-  } catch (e) {
-    document.getElementById('hotList').innerHTML = '<div class="status-bar error">加载失败<br><small>' + (e.message || '未知错误') + '</small></div>';
-  }
-}
+async function init() {
+  // Show skeleton
+  document.getElementById('waterfall').innerHTML = renderSkeletons(6);
 
-function init() {
-  loadHotList();
+  // Load from cache first
+  const cache = getCache();
+  if (cache && cache.data.length > 0) {
+    allMovies = cache.data;
+    renderBanner(allMovies.slice(0, 5));
+    renderCategoryBar();
+    renderWaterfall();
+    updateStats();
+  }
+
+  // Fetch fresh data
+  try {
+    const result = await apiCall({});
+    allMovies = result.list || [];
+    setCache(allMovies);
+    renderBanner(allMovies.slice(0, 5));
+    renderCategoryBar();
+    renderWaterfall();
+    updateStats();
+  } catch(e) {
+    if (allMovies.length === 0) {
+      document.getElementById('waterfall').innerHTML = '<div class="status-bar error">加载失败<br><small>'+(e.message||'网络错误')+'</small></div>';
+    }
+  }
+
   renderFavorites();
-  // 云更新检查（延迟执行，不阻塞首页加载）
+  renderHistory();
   setTimeout(checkUpdate, 3000);
 }
 
-// ============ 云更新 ============
+// ============ CLOUD UPDATE ============
 async function checkUpdate() {
-  if (UPDATE_URL === 'UPDATE_URL_PLACEHOLDER') return; // 未配置更新地址，跳过
-
+  if (!UPDATE_URL) return;
   try {
-    // 从远程拉取版本号
-    var verUrl = UPDATE_URL.replace(/zhuiju\.html$/, 'version.json');
-    if (verUrl === UPDATE_URL) verUrl = UPDATE_URL.replace(/\/$/, '') + '/version.json';
-
-    var resp = await fetch(verUrl + '?t=' + Date.now(), { signal: AbortSignal.timeout(8000) });
+    const verUrl = UPDATE_URL + 'version.json';
+    const resp = await fetch(verUrl+'?t='+Date.now(), {signal: AbortSignal.timeout(8000)});
     if (!resp.ok) return;
-    var remote = await resp.json();
-
-    if (remote.version > APP_VERSION) {
-      showUpdateBanner(remote);
-    }
-  } catch (e) {
-    // 检查失败静默处理，不影响正常使用
-  }
+    const remote = await resp.json();
+    if (remote.version > APP_VERSION) showUpdateBanner(remote);
+  } catch(e) {}
 }
 
 function showUpdateBanner(remote) {
-  // 避免重复弹窗
   if (document.getElementById('updateBanner')) return;
-
-  var banner = document.createElement('div');
+  const banner = document.createElement('div');
   banner.id = 'updateBanner';
-  banner.style.cssText = 'position:fixed;bottom:80px;left:12px;right:12px;z-index:500;background:linear-gradient(135deg,#7c5ce7,#e85d75);color:#fff;border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:10px;box-shadow:0 4px 20px rgba(124,92,231,0.4);animation:slideUp 0.3s ease;font-size:13px;';
-
-  banner.innerHTML =
-    '<div style="flex:1;min-width:0;">' +
-    '<div style="font-weight:700;margin-bottom:3px;">🎉 发现新版本 v' + remote.version + '</div>' +
-    '<div style="font-size:11px;opacity:0.85;">' + escapeHTML(remote.note || '') + ' · ' + escapeHTML(remote.updated || '') + '</div>' +
-    '</div>' +
-    '<button onclick="doUpdate()" style="flex-shrink:0;height:32px;padding:0 16px;border-radius:16px;border:none;background:#fff;color:#7c5ce7;font-size:12px;font-weight:700;cursor:pointer;">立即更新</button>' +
+  banner.style.cssText = 'position:fixed;bottom:80px;left:12px;right:12px;z-index:500;background:linear-gradient(135deg,#6c5ce7,#ff6b9d);color:#fff;border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:10px;box-shadow:0 4px 24px rgba(108,92,231,0.5);animation:slideUp 0.3s ease;font-size:13px;';
+  banner.innerHTML = '<div style="flex:1"><div style="font-weight:700;margin-bottom:3px">🎉 发现新版本 v'+remote.version+'</div><div style="font-size:11px;opacity:0.85">'+escapeHTML(remote.note||'')+' · '+escapeHTML(remote.updated||'')+'</div></div>'+
+    '<button onclick="doUpdate()" style="flex-shrink:0;height:32px;padding:0 16px;border-radius:16px;border:none;background:#fff;color:#6c5ce7;font-size:12px;font-weight:700;cursor:pointer;">立即更新</button>'+
     '<button onclick="this.parentElement.remove()" style="flex-shrink:0;width:24px;height:24px;border-radius:50%;border:none;background:rgba(255,255,255,0.2);color:#fff;font-size:12px;cursor:pointer;">✕</button>';
-
   document.body.appendChild(banner);
 }
 
 async function doUpdate() {
-  var banner = document.getElementById('updateBanner');
-  if (banner) {
-    banner.innerHTML = '<div style="text-align:center;width:100%;padding:8px;">⏳ 正在更新...</div>';
-  }
-
+  const banner = document.getElementById('updateBanner');
+  if (banner) banner.innerHTML = '<div style="text-align:center;width:100%;padding:8px">⏳ 正在更新...</div>';
   try {
-    var resp = await fetch(UPDATE_URL + '?t=' + Date.now(), { signal: AbortSignal.timeout(15000) });
+    const resp = await fetch(UPDATE_URL+'?t='+Date.now(), {signal:AbortSignal.timeout(15000)});
     if (!resp.ok) throw new Error('下载失败');
-    var newHTML = await resp.text();
-
-    // 验证是有效的 HTML
-    if (newHTML.indexOf('<!DOCTYPE html>') < 0 && newHTML.indexOf('<html') < 0) {
-      throw new Error('文件格式异常');
-    }
-
-    // 直接替换整个页面
-    document.open();
-    document.write(newHTML);
-    document.close();
-  } catch (e) {
-    if (banner) {
-      banner.innerHTML = '<div style="text-align:center;width:100%;padding:8px;color:#ffcccb;">⚠️ 更新失败: ' + escapeHTML(e.message || '网络错误') + '<br><small>请检查网络后重试</small></div>';
-    }
+    const newHTML = await resp.text();
+    if (newHTML.indexOf('<!DOCTYPE html>')<0 && newHTML.indexOf('<html')<0) throw new Error('格式异常');
+    document.open(); document.write(newHTML); document.close();
+  } catch(e) {
+    if (banner) banner.innerHTML = '<div style="text-align:center;width:100%;padding:8px;color:#ffcccb">⚠️ 更新失败: '+escapeHTML(e.message||'')+'</div>';
   }
 }
 
-// 动画
-var updateStyle = document.createElement('style');
-updateStyle.textContent = '@keyframes slideUp{from{transform:translateY(30px);opacity:0;}to{transform:translateY(0);opacity:1;}}';
-document.head.appendChild(updateStyle);
+const updateCSS = document.createElement('style');
+updateCSS.textContent = '@keyframes slideUp{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}';
+document.head.appendChild(updateCSS);
 
 init();
-
-// 注册 Service Worker（PWA）
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js').catch(function() {});
-}
 </script>
 </body>
 </html>
