@@ -436,7 +436,7 @@ pointer-events:none;
 <!-- Header -->
 <div class="header">
 <div class="header-top">
-<div class="logo">追剧<span class="logo-sub">v14</span></div>
+<div class="logo">追剧<span class="logo-sub">v15</span></div>
 <div class="stats-row">
 <span class="stat-badge"><span class="dot"></span><span id="updateCount">加载中</span></span>
 </div>
@@ -562,7 +562,7 @@ onkeydown="if(event.key==='Enter')doSearch()">
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
 <script>
 // ============ CONFIG ============
-const APP_VERSION = 14;
+const APP_VERSION = 15;
 const UPDATE_URL = 'https://zhangxinzhi111.github.io/zhuiju/';
 
 // Auto-detect local server: use relative /api/ path when served from local server,
@@ -717,11 +717,10 @@ function posterIcon(name) {
 
 // ============ POSTER URL - 核心改进：多代理尝试 ============
 function getPosterURL(item) {
-  // Check cache first
   const cacheKey = 'poster_' + item.vod_id;
   if (posterCache[cacheKey]) return posterCache[cacheKey];
   
-  // 1. TMDB poster (already proxied via IMAGE_PROXIES in searchTMDB)
+  // 1. TMDB poster
   if (tmdbEnabled()) {
     const tmdb = tmdbCache[item.vod_name];
     if (tmdb && tmdb.poster) {
@@ -730,12 +729,11 @@ function getPosterURL(item) {
     }
   }
   
-  // 2. API vod_pic - try multiple approaches
+  // 2. API vod_pic - try direct first (most reliable, no proxy overhead)
+  //    then fall back to CORS proxy if direct doesn't work
   if (item.vod_pic && item.vod_pic.startsWith('http')) {
-    // Try CORS proxy first
-    const proxied = CORS_PROXIES[0] + encodeURIComponent(item.vod_pic);
-    posterCache[cacheKey] = proxied;
-    return proxied;
+    posterCache[cacheKey] = item.vod_pic;
+    return item.vod_pic;
   }
   
   return null;
@@ -762,10 +760,15 @@ function posterHTML(item) {
     ratingHTML = '<div class="tmdb-rating">⭐ '+rating+'</div>';
   }
   
-  // Always show img with onerror fallback
+  // Always show img with onerror fallback - try proxy if direct fails
   if (pic) {
+    const proxyPic = pic.startsWith('http') && !pic.includes('codetabs') && !pic.includes('tmdb') 
+      ? CORS_PROXIES[0] + encodeURIComponent(pic) : '';
+    const onerr = proxyPic 
+      ? "this.onerror=null;this.src='" + proxyPic + "'"
+      : "this.classList.add('hidden');this.nextElementSibling.style.display='flex'";
     return ratingHTML +
-      '<img src="'+pic+'" loading="lazy" onerror="this.classList.add(\'hidden\');this.nextElementSibling.style.display=\'flex\'">' +
+      '<img src="'+pic+'" loading="lazy" onerror="'+onerr+'">' +
       '<div class="poster-fallback" style="--c1:'+c[0]+';--c2:'+c[1]+';display:none">' +
         '<div class="pf-pattern"></div>' +
         '<div class="pf-icon">'+icon+'</div>' +
@@ -816,29 +819,25 @@ async function apiCall(params) {
     return await fetchAndParse(directUrl, ac);
   }
   
-  // CORS proxy mode: only codetabs is reliable
-  // allorigins (timeout), corsproxy.io (403) are not usable
-  // Try codetabs up to 2 times with short timeout
+  // CORS proxy mode: try codetabs with retry
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
       const proxyUrl = 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(directUrl);
       return await fetchAndParse(proxyUrl, ac);
     } catch(e) {
       if (attempt === 0) {
-        // First attempt failed, wait 1s and retry
-        await new Promise(r => setTimeout(r, 1000));
+        await new Promise(r => setTimeout(r, 2000));
         continue;
       }
       break;
     }
   }
   
-  // Last resort: try direct (will fail due to CORS, but show helpful error)
-  throw new Error('网络代理不可用，请使用本地服务器（双击"启动服务器.bat"）');
+  throw new Error('网络代理超时，请下拉刷新重试');
 }
 
 async function fetchAndParse(url, ac) {
-  const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
+  const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
   if (!res.ok) throw new Error('HTTP '+res.status);
   const text = await res.text();
   let data;
@@ -1127,8 +1126,13 @@ async function openSheet(vodId, vodName) {
     const c = posterColor(detail.vod_name);
     const icon = posterIcon(detail.type_name || '');
     const pic = getPosterURL(detail);
+    const proxyPic = pic && pic.startsWith('http') && !pic.includes('codetabs') && !pic.includes('tmdb') 
+      ? CORS_PROXIES[0] + encodeURIComponent(pic) : '';
+    const onerr = proxyPic
+      ? "this.onerror=null;this.src='" + proxyPic + "'"
+      : "this.style.display='none';this.nextElementSibling.style.display='flex'";
     if (pic) {
-      document.getElementById('sheetPoster').innerHTML = '<button class="sheet-close" onclick="closeSheet()">✕</button><img src="'+pic+'" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'"><div class="sheet-fallback" style="display:none;background:linear-gradient(135deg,'+c[0]+','+c[1]+')">'+icon+'</div>';
+      document.getElementById('sheetPoster').innerHTML = '<button class="sheet-close" onclick="closeSheet()">✕</button><img src="'+pic+'" onerror="'+onerr+'"><div class="sheet-fallback" style="display:none;background:linear-gradient(135deg,'+c[0]+','+c[1]+')">'+icon+'</div>';
     } else {
       document.getElementById('sheetPoster').innerHTML = '<button class="sheet-close" onclick="closeSheet()">✕</button><div class="sheet-fallback" style="background:linear-gradient(135deg,'+c[0]+','+c[1]+')">'+icon+'</div>';
     }
@@ -1393,36 +1397,77 @@ function playViaProxy(url, startIdx) {
   iframe.setAttribute('allowfullscreen', 'true');
   iframe.setAttribute('allow', 'autoplay; encrypted-media; picture-in-picture');
   iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-presentation allow-popups');
-  iframe.style.cssText = 'width:100%;height:100%;border:none;position:absolute;inset:0;';
-  iframe.src = PARSE_APIS[idx] + encodedUrl;
+  iframe.style.cssText = 'width:100%;height:100%;border:none;position:absolute;inset:0;background:#000;';
 
-  // Auto-switch to next parse API if this one doesn't load in 6 seconds
+  // CRITICAL: append iframe to DOM FIRST, then set src
+  // Setting src before DOM insertion causes load issues on mobile browsers
+  container.innerHTML = '';
+  container.appendChild(iframe);
+
+  // Auto-switch to next parse API if this one doesn't load in 8 seconds
+  let switched = false;
   const switchTimer = setTimeout(() => {
-    if (idx + 1 < PARSE_APIS.length) {
-      playViaProxy(url, idx + 1);
-    } else {
-      container.innerHTML = '<div class="player-placeholder">⚠️ 所有解析线路均超时<br><small>请检查网络连接后重试</small></div>';
+    if (!switched) {
+      switched = true;
+      if (idx + 1 < PARSE_APIS.length) {
+        playViaProxy(url, idx + 1);
+      } else {
+        // All failed, try direct video playback as last resort
+        tryDirectVideo(url);
+      }
     }
-  }, 6000);
+  }, 8000);
 
   iframe.addEventListener('load', () => {
+    if (switched) return;
     clearTimeout(switchTimer);
-    container.innerHTML = '';
-    container.appendChild(iframe);
+    switched = true;
     parseApiIdx = idx;
     const label = document.getElementById('currentParseLabel');
     if (label) label.textContent = '解析' + (idx + 1);
   });
 
   iframe.addEventListener('error', () => {
+    if (switched) return;
     clearTimeout(switchTimer);
+    switched = true;
     if (idx + 1 < PARSE_APIS.length) {
       playViaProxy(url, idx + 1);
+    } else {
+      tryDirectVideo(url);
     }
   });
 
-  container.innerHTML = '';
-  container.appendChild(iframe);
+  // NOW set src - after iframe is in DOM
+  iframe.src = PARSE_APIS[idx] + encodedUrl;
+}
+
+// Last resort: try direct video tag (works for mp4, not m3u8)
+function tryDirectVideo(url) {
+  const container = document.getElementById('playerContainer');
+  cleanupPlayer();
+  const video = document.createElement('video');
+  video.controls = true;
+  video.autoplay = true;
+  video.playsInline = true;
+  video.setAttribute('webkit-playsinline', 'true');
+  video.setAttribute('x5-video-player-type', 'h5');
+  video.style.cssText = 'width:100%;height:100%;max-height:100%;object-fit:contain;';
+  video.src = url;
+  container.appendChild(video);
+  playerVideo = video;
+  
+  video.addEventListener('error', () => {
+    container.innerHTML = '<div class="player-placeholder">⚠️ 所有播放方式均失败<br><small>请尝试切换线路或稍后重试</small></div>';
+  });
+  
+  video.addEventListener('loadeddata', () => {
+    parseApiIdx = PARSE_APIS.length;
+    const label = document.getElementById('currentParseLabel');
+    if (label) label.textContent = '直连';
+  });
+  
+  video.play().catch(() => {});
 }
 
 function cleanupPlayer() {
