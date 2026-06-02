@@ -436,7 +436,7 @@ pointer-events:none;
 <!-- Header -->
 <div class="header">
 <div class="header-top">
-<div class="logo">追剧<span class="logo-sub">v12</span></div>
+<div class="logo">追剧<span class="logo-sub">v13</span></div>
 <div class="stats-row">
 <span class="stat-badge"><span class="dot"></span><span id="updateCount">加载中</span></span>
 </div>
@@ -562,12 +562,12 @@ onkeydown="if(event.key==='Enter')doSearch()">
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
 <script>
 // ============ CONFIG ============
-const APP_VERSION = 12;
+const APP_VERSION = 13;
 const UPDATE_URL = 'https://zhangxinzhi111.github.io/zhuiju/';
 const API_BASE = 'https://api.apibdzy.com/api.php/provide/vod/';
 const CORS_PROXIES = [
-  'https://api.allorigins.win/raw?url=',
   'https://api.codetabs.com/v1/proxy?quest=',
+  'https://api.allorigins.win/raw?url=',
   'https://corsproxy.io/?'
 ];
 const PARSE_APIS = [
@@ -791,26 +791,28 @@ async function apiCall(params) {
   const ac = params.ac || 'list';
   const directUrl = buildApiUrl(ac, params);
   
-  // Race multiple proxies - fastest wins
-  const proxyPromises = CORS_PROXIES.map(async (proxy) => {
+  // Try codetabs first (most reliable), then others as fallback
+  // Avoid Promise.any for compatibility with older WebViews
+  const proxies = [
+    'https://api.codetabs.com/v1/proxy?quest=',
+    'https://api.allorigins.win/raw?url=',
+    'https://corsproxy.io/?'
+  ];
+  
+  for (const proxy of proxies) {
     try {
       const proxyUrl = proxy + encodeURIComponent(directUrl);
       return await fetchAndParse(proxyUrl, ac);
-    } catch(e) { throw e; }
-  });
-  
-  // Use Promise.any to get first successful result
-  try {
-    return await Promise.any(proxyPromises);
-  } catch(e) {
-    // All failed, try direct
-    try { return await fetchAndParse(directUrl, ac); }
-    catch(e2) { throw e2; }
+    } catch(e) { continue; }
   }
+  
+  // Last resort: try direct (will fail due to CORS in browser, but worth a shot)
+  try { return await fetchAndParse(directUrl, ac); }
+  catch(e) { throw new Error('所有线路均不可用，请检查网络'); }
 }
 
 async function fetchAndParse(url, ac) {
-  const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
+  const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
   if (!res.ok) throw new Error('HTTP '+res.status);
   const text = await res.text();
   let data;
@@ -820,6 +822,7 @@ async function fetchAndParse(url, ac) {
     if (list.length) return { list, total: list.length };
     throw new Error('API 返回格式异常');
   }
+  // API returns code=1 for success
   if (ac === 'detail') {
     const item = data.list ? data.list[0] : data;
     if (!item || !item.vod_id) throw new Error('详情数据为空');
