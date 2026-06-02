@@ -5,11 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0a0a1a">
-<meta name="x5-fullscreen" content="true">
-<meta name="x5-page-mode" content="app">
-<meta name="wap-font-scale" content="no">
 <title>追剧 - 发现好剧，在线观影</title>
 <style>
 :root{
@@ -180,10 +176,11 @@ background:linear-gradient(135deg,var(--purple),var(--pink2));
 display:flex;align-items:center;justify-content:center;
 }
 .movie-card .card-poster img{
-width:100%;height:100%;object-fit:cover;transition:opacity 0.4s;
-opacity:0;
+width:100%;height:100%;object-fit:cover;
+/* CRITICAL: start with opacity:1 so poster shows immediately */
+opacity:1;
 }
-.movie-card .card-poster img.loaded{opacity:1;}
+.movie-card .card-poster img.hidden{opacity:0;position:absolute;}
 .movie-card .card-poster .poster-fallback{
 position:absolute;inset:0;
 background:linear-gradient(135deg,var(--c1,var(--purple)),var(--c2,var(--pink2)));
@@ -309,8 +306,8 @@ background:rgba(255,255,255,0.15);color:#fff;font-size:14px;
 cursor:pointer;display:flex;align-items:center;justify-content:center;
 }
 .player-title{flex:1;font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.player-container{flex:1;background:#000;display:flex;align-items:center;justify-content:center;}
-.player-container video{width:100%;height:100%;max-height:100dvh;object-fit:contain;}
+.player-container{flex:1;background:#000;display:flex;align-items:center;justify-content:center;min-height:0;}
+.player-container video{width:100%;height:100%;max-height:100%;object-fit:contain;}
 .player-placeholder{text-align:center;color:var(--text2);padding:20px;}
 .source-select{
 padding:6px 10px;background:var(--bg2);display:flex;gap:4px;
@@ -323,12 +320,24 @@ border:1px solid var(--border);background:var(--surface);
 color:var(--text2);font-size:10px;cursor:pointer;transition:all 0.2s;
 }
 .source-btn.active{background:rgba(108,92,231,0.2);border-color:var(--purple);color:var(--purple);}
+
+/* Episode toggle button */
+.episode-toggle{
+display:flex;align-items:center;justify-content:center;gap:4px;
+padding:6px 10px;background:var(--bg2);border-top:1px solid var(--border);flex-shrink:0;
+cursor:pointer;font-size:11px;color:var(--text2);user-select:none;
+}
+.episode-toggle .arrow{transition:transform 0.3s;font-size:10px;}
+.episode-toggle .arrow.open{transform:rotate(180deg);}
+
+/* Episode bar - now collapsible but STAYS when shown */
 .episode-bar{
 padding:8px 10px;background:var(--bg2);overflow-y:auto;max-height:120px;
 display:flex;flex-wrap:wrap;gap:4px;align-content:flex-start;
 scrollbar-width:thin;flex-shrink:0;
 padding-bottom:calc(8px + var(--safe-bottom));
 }
+.episode-bar.hidden{display:none;}
 .episode-bar::-webkit-scrollbar{width:3px;}
 .episode-bar::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
 .episode-btn{
@@ -412,7 +421,7 @@ pointer-events:none;
 <!-- Header -->
 <div class="header">
 <div class="header-top">
-<div class="logo">追剧<span class="logo-sub">v8</span></div>
+<div class="logo">追剧<span class="logo-sub">v9</span></div>
 <div class="stats-row">
 <span class="stat-badge"><span class="dot"></span><span id="updateCount">加载中</span></span>
 </div>
@@ -501,6 +510,10 @@ onkeydown="if(event.key==='Enter')doSearch()">
 <div class="player-placeholder">🎬 正在加载播放器...</div>
 </div>
 <div class="source-select" id="sourceSelect"></div>
+<!-- Episode toggle: user controls show/hide -->
+<div class="episode-toggle" id="episodeToggle" onclick="toggleEpisodes()">
+<span>📺 选集</span><span class="arrow" id="episodeArrow">▼</span>
+</div>
 <div class="episode-bar" id="episodeBar"></div>
 </div>
 
@@ -527,7 +540,7 @@ onkeydown="if(event.key==='Enter')doSearch()">
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
 <script>
 // ============ CONFIG ============
-const APP_VERSION = 8;
+const APP_VERSION = 9;
 const UPDATE_URL = 'https://zhangxinzhi111.github.io/zhuiju/';
 const API_BASE = 'https://api.apibdzy.com/api.php/provide/vod/';
 const CORS_PROXIES = ['https://api.codetabs.com/v1/proxy?quest='];
@@ -556,7 +569,7 @@ let bannerTimer = null;
 let bannerIdx = 0;
 let bannerItems = [];
 let tmdbCache = {};
-let posterCache = {}; // fallback poster cache: { movieName: imageUrl }
+let episodeVisible = true; // user controls episode bar visibility
 
 // ============ TMDB API ============
 function tmdbEnabled() {
@@ -592,102 +605,10 @@ async function searchTMDB(query) {
   }
 }
 
-// ============ DUCKDUCKGO IMAGE SEARCH (fallback when TMDB fails) ============
-async function searchImageDDG(query) {
-  if (posterCache[query]) return posterCache[query];
-  try {
-    const proxy = CORS_PROXIES[0];
-    // Use DuckDuckGo image search via HTML scraping (no API key needed)
-    const searchUrl = 'https://duckduckgo.com/?q=' + encodeURIComponent(query + ' 电影海报') + '&iar=images&iax=images&ia=images';
-    const resp = await fetch(proxy + searchUrl, { signal: AbortSignal.timeout(8000) });
-    if (!resp.ok) return null;
-    const html = await resp.text();
-    // Try to extract vqd token and image results
-    const vqdMatch = html.match(/vqd=([0-9-]+)/);
-    if (!vqdMatch) return null;
-    const vqd = vqdMatch[1];
-    // Use DDG image API
-    const imgApiUrl = 'https://duckduckgo.com/i.js?l=us-en&o=json&q=' + encodeURIComponent(query + ' 电影海报') + '&vqd=' + vqd;
-    const imgResp = await fetch(proxy + imgApiUrl, { signal: AbortSignal.timeout(8000) });
-    if (!imgResp.ok) return null;
-    const imgData = await imgResp.json();
-    if (imgData.results && imgData.results.length > 0) {
-      // Filter for reasonable image sizes
-      const good = imgData.results.filter(r => r.width > 100 && r.height > 150);
-      if (good.length > 0) {
-        const url = good[0].image || good[0].thumbnail;
-        posterCache[query] = url;
-        return url;
-      }
-    }
-    return null;
-  } catch(e) {
-    return null;
-  }
-}
-
-// ============ BING IMAGE SEARCH FALLBACK ============
-async function searchImageBing(query) {
-  if (posterCache[query]) return posterCache[query];
-  try {
-    const proxy = CORS_PROXIES[0];
-    const searchUrl = 'https://cn.bing.com/images/search?q=' + encodeURIComponent(query + ' 海报 cover') + '&form=HDRSC2&first=1';
-    const resp = await fetch(proxy + searchUrl, { signal: AbortSignal.timeout(8000) });
-    if (!resp.ok) return null;
-    const html = await resp.text();
-    // Parse Bing image results - look for murl or mediaurl in the HTML
-    const matches = html.match(/murl&quot;:&quot;(https?:[^&]+\.(jpg|jpeg|png|webp)[^&]*)&quot;/g);
-    if (matches && matches.length > 0) {
-      const url = matches[0].replace(/murl&quot;:&quot;/, '').replace(/&quot;$/, '').replace(/\\u002f/g, '/');
-      posterCache[query] = url;
-      return url;
-    }
-    return null;
-  } catch(e) {
-    return null;
-  }
-}
-
-// ============ UNIFIED POSTER SEARCH (TMDB → DDG → Bing → null) ============
-async function searchPoster(query) {
-  if (posterCache[query]) return posterCache[query];
-
-  // Try TMDB first
-  const tmdb = await searchTMDB(query);
-  if (tmdb && tmdb.poster) {
-    posterCache[query] = tmdb.poster;
-    return tmdb.poster;
-  }
-
-  // Try DuckDuckGo
-  const ddg = await searchImageDDG(query);
-  if (ddg) return ddg;
-
-  // Try Bing
-  const bing = await searchImageBing(query);
-  if (bing) return bing;
-
-  return null;
-}
-
 async function batchTMDB(movies) {
   if (!tmdbEnabled()) return;
   const batch = movies.slice(0, 20);
   const promises = batch.map(m => searchTMDB(m.vod_name));
-  await Promise.allSettled(promises);
-}
-
-// ============ FALLBACK POSTER LOADING (search-based) ============
-async function loadFallbackPosters(movies) {
-  const toLoad = movies.filter(m => {
-    const name = m.vod_name;
-    // Skip if already has TMDB poster or fallback poster
-    if (tmdbCache[name] && tmdbCache[name].poster) return false;
-    if (posterCache[name]) return false;
-    return true;
-  }).slice(0, 10); // Limit to 10 searches to avoid rate limiting
-
-  const promises = toLoad.map(m => searchPoster(m.vod_name));
   await Promise.allSettled(promises);
 }
 
@@ -703,14 +624,14 @@ function posterColor(name) {
   return POSTER_COLORS[Math.abs(h) % POSTER_COLORS.length];
 }
 
+// ============ POSTER URL (SIMPLIFIED: TMDB > API vod_pic > null) ============
 function getPosterURL(item) {
-  // Priority: TMDB > fallback posterCache > API vod_pic > null
+  // Priority 1: TMDB poster (already proxied)
   if (tmdbEnabled()) {
     const tmdb = tmdbCache[item.vod_name];
     if (tmdb && tmdb.poster) return tmdb.poster;
   }
-  if (posterCache[item.vod_name]) return posterCache[item.vod_name];
-  // Try API's own vod_pic through proxy
+  // Priority 2: API's own vod_pic through proxy
   if (item.vod_pic && item.vod_pic.startsWith('http')) {
     return CORS_PROXIES[0] + encodeURIComponent(item.vod_pic);
   }
@@ -725,6 +646,7 @@ function getRating(item) {
   return null;
 }
 
+// ============ POSTER HTML (img always visible, fallback hidden until error) ============
 function posterHTML(item) {
   const c = posterColor(item.vod_name);
   const pic = getPosterURL(item);
@@ -734,10 +656,12 @@ function posterHTML(item) {
     ratingHTML = '<div class="tmdb-rating">⭐ '+rating+'</div>';
   }
   if (pic) {
-    return ratingHTML + '<img src="'+pic+'" loading="lazy" onload="this.classList.add(\'loaded\')" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'">' +
-      '<div class="poster-fallback" style="--c1:'+c[0]+';--c2:'+c[1]+';display:none"><div class="pf-pattern"></div><div class="pf-text">'+(item.vod_name||'?')[0]+'</div></div>';
+    // img starts visible (opacity:1), fallback hidden. If img errors, hide it and show fallback.
+    return ratingHTML +
+      '<img src="'+pic+'" loading="lazy" onerror="this.classList.add(\'hidden\');this.nextElementSibling.style.display=\'flex\'">' +
+      '<div class="poster-fallback" style="--c1:'+c[0]+';--c2:'+c[1]+';display:none"><div class="pf-pattern"></div><div class="pf-text">'+(item.vod_name||'?')[0]+'</div>';
   }
-  return '<div class="poster-fallback" style="--c1:'+c[0]+';--c2:'+c[1]+'"><div class="pf-pattern"></div><div class="pf-text">'+(item.vod_name||'?')[0]+'</div></div>';
+  return '<div class="poster-fallback" style="--c1:'+c[0]+';--c2:'+c[1]+'"><div class="pf-pattern"></div><div class="pf-text">'+(item.vod_name||'?')[0]+'</div>';
 }
 
 function escapeHTML(s) {
@@ -811,24 +735,18 @@ function parseXMLVod(xml) {
   return items;
 }
 
-// ============ LOAD MORE DATA (multiple pages) ============
+// ============ LOAD MULTIPLE PAGES ============
 async function loadAllData() {
   const results = [];
-  // Load pages 1-3 to get more complete data
   for (let pg = 1; pg <= 3; pg++) {
     try {
       const result = await apiCall({ pg: pg });
       if (result.list && result.list.length > 0) {
         results.push(...result.list);
       }
-      // If fewer than 20 results, probably end of list
       if (!result.list || result.list.length < 20) break;
-    } catch(e) {
-      // Continue even if one page fails
-      break;
-    }
+    } catch(e) { break; }
   }
-  // Deduplicate by vod_id
   const seen = new Set();
   return results.filter(m => {
     if (seen.has(m.vod_id)) return false;
@@ -871,7 +789,7 @@ function setCache(data) {
   localStorage.setItem(CACHE_KEY, JSON.stringify({ data, cachedAt: Date.now() }));
 }
 
-// ============ RENDER: BANNER (FIXED AUTOPLAY) ============
+// ============ RENDER: BANNER ============
 let bannerScrollListener = null;
 
 function renderBanner(items) {
@@ -880,13 +798,8 @@ function renderBanner(items) {
   bannerItems = items.slice(0, 6);
   bannerIdx = 0;
 
-  // Stop existing timer
   if (bannerTimer) { clearInterval(bannerTimer); bannerTimer = null; }
-
-  // Remove old scroll listener
-  if (bannerScrollListener) {
-    scroll.removeEventListener('scroll', bannerScrollListener);
-  }
+  if (bannerScrollListener) { scroll.removeEventListener('scroll', bannerScrollListener); }
 
   scroll.innerHTML = bannerItems.map((item, i) => {
     const c = posterColor(item.vod_name);
@@ -906,18 +819,17 @@ function renderBanner(items) {
 
   dots.innerHTML = bannerItems.map((_,i) => '<div class="banner-dot'+(i===0?' active':'')+'" onclick="scrollBanner('+i+')"></div>').join('');
 
-  // Start autoplay - use manual scrollLeft calculation for reliability
+  // Autoplay every 3.5s
   bannerTimer = setInterval(() => {
     if (bannerItems.length === 0) return;
     bannerIdx = (bannerIdx + 1) % bannerItems.length;
     autoScrollBanner(bannerIdx);
   }, 3500);
 
-  // Track scroll position for dot updates
   bannerScrollListener = () => {
-    const cardWidth = scroll.querySelector('.banner-card');
-    if (!cardWidth) return;
-    const w = cardWidth.offsetWidth + 8; // 8px gap
+    const cards = scroll.querySelectorAll('.banner-card');
+    if (!cards.length) return;
+    const w = cards[0].offsetWidth + 8;
     const idx = Math.round(scroll.scrollLeft / w);
     if (idx >= 0 && idx < bannerItems.length && idx !== bannerIdx) {
       bannerIdx = idx;
@@ -932,17 +844,13 @@ function autoScrollBanner(idx) {
   if (!scroll) return;
   const cards = scroll.querySelectorAll('.banner-card');
   if (!cards.length) return;
-  const cardWidth = cards[0].offsetWidth;
-  const gap = 8;
-  const targetScroll = idx * (cardWidth + gap);
+  const targetScroll = idx * (cards[0].offsetWidth + 8);
   scroll.scrollTo({ left: targetScroll, behavior: 'smooth' });
   bannerIdx = idx;
   updateBannerDots();
 }
 
-function scrollBanner(idx) {
-  autoScrollBanner(idx);
-}
+function scrollBanner(idx) { autoScrollBanner(idx); }
 
 function updateBannerDots() {
   document.querySelectorAll('.banner-dot').forEach((d, i) => d.classList.toggle('active', i === bannerIdx));
@@ -964,16 +872,40 @@ function renderCategoryBar() {
   document.getElementById('catBar').innerHTML = html;
 }
 
-function setSort(mode) {
-  sortMode = mode;
-  renderCategoryBar();
-  renderMovieGrid();
-}
+function setSort(mode) { sortMode = mode; renderCategoryBar(); renderMovieGrid(); }
 
-function filterCategory(cat) {
-  currentCategory = cat;
-  renderCategoryBar();
-  renderMovieGrid();
+function filterCategory(cat) { currentCategory = cat; renderCategoryBar(); renderMovieGrid(); }
+
+// ============ CATEGORY MATCHING (FIXED: broader matching) ============
+function matchCategory(typeName, cat) {
+  const t = (typeName || '').toLowerCase();
+  if (cat === '电影') {
+    // Match: 电影, 动作, 喜剧, 爱情, 科幻, 恐怖, 悬疑, 战争, 剧情, 动画片, etc.
+    // Basically anything that is a movie genre OR contains 电影/片
+    if (t.includes('电影') || t.includes('movie')) return true;
+    // Common Chinese movie genre keywords
+    const movieKeywords = ['动作', '喜剧', '爱情', '科幻', '恐怖', '悬疑', '惊悚', '战争',
+      '剧情', '犯罪', '冒险', '奇幻', '纪录', '历史', '西部', '歌舞', '音乐',
+      '动画片', '文艺', '伦理', '情色', '短片', '微电影'];
+    return movieKeywords.some(kw => t.includes(kw));
+  }
+  if (cat === '电视剧') {
+    if (t.includes('电视') || t.includes('剧') || t.includes('tv') || t.includes('drama')) return true;
+    const tvKeywords = ['国产剧', '港剧', '台剧', '韩剧', '日剧', '美剧', '英剧',
+      '泰剧', '海外剧', '网剧', '连续剧', '短剧'];
+    return tvKeywords.some(kw => t.includes(kw));
+  }
+  if (cat === '动漫') {
+    if (t.includes('动漫') || t.includes('动画') || t.includes('anime')) return true;
+    const animeKeywords = ['日漫', '国漫', '剧场版', 'OVA', 'OAD'];
+    return animeKeywords.some(kw => t.includes(kw));
+  }
+  if (cat === '综艺') {
+    if (t.includes('综艺') || t.includes('variety') || t.includes('真人秀')) return true;
+    const varietyKeywords = ['脱口秀', '访谈', '选秀', '竞技', '美食', '旅行', '音乐节'];
+    return varietyKeywords.some(kw => t.includes(kw));
+  }
+  return true;
 }
 
 // ============ RENDER: GRID ============
@@ -1006,15 +938,7 @@ function renderSkeletons(count) {
 function getFilteredMovies() {
   let list;
   if (currentCategory === '全部') list = allMovies.slice();
-  else list = allMovies.filter(m => {
-    const t = (m.type_name || '').toLowerCase();
-    const c = currentCategory;
-    if (c === '电影') return t.includes('电影') || t.includes('movie');
-    if (c === '电视剧') return t.includes('电视') || t.includes('剧') || t.includes('tv');
-    if (c === '动漫') return t.includes('动漫') || t.includes('动画') || t.includes('anime');
-    if (c === '综艺') return t.includes('综艺') || t.includes('variety');
-    return true;
-  });
+  else list = allMovies.filter(m => matchCategory(m.type_name, currentCategory));
   if (sortMode === 'new') {
     list.sort((a, b) => {
       const ya = extractYear(a), yb = extractYear(b);
@@ -1125,16 +1049,12 @@ function toggleFavItem(item) {
   showToast(favorites.some(f=>f.vod_id===item.vod_id) ? '已收藏 ❤️' : '已取消收藏');
 }
 
-function saveFavorites() {
-  localStorage.setItem('zhuiju_favs', JSON.stringify(favorites));
-}
+function saveFavorites() { localStorage.setItem('zhuiju_favs', JSON.stringify(favorites)); }
 
 function clearFavorites() {
   if (!favorites.length) return;
   if (!confirm('确定清空全部 '+favorites.length+' 个收藏？')) return;
-  favorites = [];
-  saveFavorites();
-  renderFavorites();
+  favorites = []; saveFavorites(); renderFavorites();
 }
 
 function renderFavorites() {
@@ -1171,18 +1091,12 @@ function saveCurrentProgress() {
     currentSourceIdx, currentEpIdx, ep.label, ep.url, t, allSources.length, src.eps.length, watchedEps);
 }
 
-function deleteHistoryEntry(vodId) {
-  history = history.filter(h => h.vod_id !== vodId);
-  localStorage.setItem('zhuiju_history', JSON.stringify(history));
-  renderHistory();
-}
+function deleteHistoryEntry(vodId) { history = history.filter(h => h.vod_id !== vodId); localStorage.setItem('zhuiju_history', JSON.stringify(history)); renderHistory(); }
 
 function clearHistory() {
   if (!history.length) return;
   if (!confirm('确定清空全部 '+history.length+' 条记录？')) return;
-  history = [];
-  localStorage.setItem('zhuiju_history', JSON.stringify(history));
-  renderHistory();
+  history = []; localStorage.setItem('zhuiju_history', JSON.stringify(history)); renderHistory();
 }
 
 function formatTimeAgo(ts) {
@@ -1191,8 +1105,7 @@ function formatTimeAgo(ts) {
   if (diff < 3600000) return Math.floor(diff/60000)+'分钟前';
   if (diff < 86400000) return Math.floor(diff/3600000)+'小时前';
   if (diff < 604800000) return Math.floor(diff/86400000)+'天前';
-  const d = new Date(ts);
-  return (d.getMonth()+1)+'/'+d.getDate();
+  const d = new Date(ts); return (d.getMonth()+1)+'/'+d.getDate();
 }
 
 function formatDuration(s) {
@@ -1250,6 +1163,26 @@ async function resumeFromHistory(vodId, sourceIdx, epIdx) {
   } catch(e) { container.innerHTML='<div class="player-placeholder">⚠️ 恢复失败<br><small>'+(e.message||'')+'</small></div>'; }
 }
 
+// ============ EPISODE TOGGLE ============
+function toggleEpisodes() {
+  episodeVisible = !episodeVisible;
+  const bar = document.getElementById('episodeBar');
+  const arrow = document.getElementById('episodeArrow');
+  if (episodeVisible) {
+    bar.classList.remove('hidden');
+    arrow.classList.add('open');
+  } else {
+    bar.classList.add('hidden');
+    arrow.classList.remove('open');
+  }
+}
+
+function showEpisodes() {
+  episodeVisible = true;
+  document.getElementById('episodeBar').classList.remove('hidden');
+  document.getElementById('episodeArrow').classList.add('open');
+}
+
 // ============ PLAYER ============
 function showPlayer() {
   const page = document.getElementById('playerPage');
@@ -1257,6 +1190,8 @@ function showPlayer() {
   document.querySelector('.bottom-nav').style.display = 'none';
   document.querySelector('.header').style.display = 'none';
   document.body.style.overflow = 'hidden';
+  // Ensure episodes are visible by default
+  showEpisodes();
 }
 
 async function playItem(vodId, vodName) {
@@ -1292,6 +1227,8 @@ function switchSource(idx) {
   document.querySelectorAll('.source-btn').forEach((b,i) => b.classList.toggle('active', i===idx));
   renderEpisodes(allSources[idx], 0);
   if (allSources[idx].eps.length) playEpisode(allSources[idx].eps[0].url);
+  // Keep episodes visible on source switch
+  showEpisodes();
 }
 
 function renderEpisodes(source, activeIdx) {
@@ -1304,6 +1241,8 @@ function renderEpisodes(source, activeIdx) {
     if (watchedEps.indexOf(i) >= 0) cls += ' watched';
     return '<button class="'+cls+'" onclick="playEpisode(\''+ep.url.replace(/'/g,"\\'")+'\',this)">'+escapeHTML(ep.label)+'</button>';
   }).join('');
+  // Ensure episodes are visible
+  showEpisodes();
   setTimeout(() => { const btn = bar.querySelector('.episode-btn.active'); if(btn) btn.scrollIntoView({behavior:'smooth',block:'nearest'}); }, 100);
 }
 
@@ -1311,6 +1250,8 @@ function playEpisode(url, btnEl, resumeTime) {
   if (btnEl) {
     document.querySelectorAll('.episode-btn').forEach((b,i) => { b.classList.remove('active'); if(b===btnEl) currentEpIdx=i; });
     btnEl.classList.add('active');
+    // Keep episodes visible after selecting one
+    showEpisodes();
   }
   const container = document.getElementById('playerContainer');
   if (playerVideo) { if(playerVideo.hls){playerVideo.hls.destroy();playerVideo.hls=null;} playerVideo.pause(); playerVideo.remove(); playerVideo=null; }
@@ -1323,7 +1264,7 @@ function playEpisode(url, btnEl, resumeTime) {
       video.controls=true; video.autoplay=true; video.playsInline=true;
       video.setAttribute('x5-video-player-type','h5');
       video.setAttribute('x5-video-player-fullscreen','true');
-      video.style.cssText='width:100%;height:100%;max-height:100dvh;object-fit:contain;';
+      video.style.cssText='width:100%;height:100%;max-height:100%;object-fit:contain;';
       container.appendChild(video);
       const hls = new Hls({enableWorker:false, startPosition:resumeTime});
       hls.loadSource(url); hls.attachMedia(video);
@@ -1334,7 +1275,7 @@ function playEpisode(url, btnEl, resumeTime) {
       const video = document.createElement('video');
       video.controls=true; video.autoplay=true; video.playsInline=true;
       video.src=url; if(resumeTime>0) video.currentTime=resumeTime;
-      video.style.cssText='width:100%;height:100%;max-height:100dvh;object-fit:contain;';
+      video.style.cssText='width:100%;height:100%;max-height:100%;object-fit:contain;';
       container.appendChild(video); playerVideo=video;
       video.play().catch(()=>tryParseFallback(url));
     }
@@ -1342,7 +1283,7 @@ function playEpisode(url, btnEl, resumeTime) {
     const video = document.createElement('video');
     video.controls=true; video.autoplay=true; video.playsInline=true;
     video.src=url; if(resumeTime>0) video.currentTime=resumeTime;
-    video.style.cssText='width:100%;height:100%;max-height:100dvh;object-fit:contain;';
+    video.style.cssText='width:100%;height:100%;max-height:100%;object-fit:contain;';
     container.appendChild(video); playerVideo=video;
     video.play().catch(()=>tryParseFallback(url));
   } else {
@@ -1410,10 +1351,7 @@ document.addEventListener('touchstart', e => {
 document.addEventListener('touchmove', e => {
   if (pullStartY && window.scrollY === 0 && currentPage === 'watch') {
     const dy = e.touches[0].clientY - pullStartY;
-    if (dy > 60 && !pulling) {
-      pulling = true;
-      refreshData();
-    }
+    if (dy > 60 && !pulling) { pulling = true; refreshData(); }
   }
 }, {passive: true});
 document.addEventListener('touchend', () => { pullStartY = 0; pulling = false; });
@@ -1423,19 +1361,13 @@ async function refreshData() {
   indicator.innerHTML = '<span class="pull-spinner"></span>正在刷新...';
   indicator.classList.add('show');
   try {
-    const oldCount = allMovies.length;
     allMovies = await loadAllData();
     setCache(allMovies);
     renderBanner(allMovies.slice(0, 6));
     renderMovieGrid();
     updateStats();
-    // Load posters in background
-    if (tmdbEnabled()) {
-      batchTMDB(allMovies).then(() => reRenderAll());
-    }
-    loadFallbackPosters(allMovies).then(() => reRenderAll());
-    const newCount = allMovies.length - oldCount;
-    indicator.innerHTML = '✅ 更新完成'+(newCount>0?'，新增 '+newCount+' 部':'');
+    if (tmdbEnabled()) { batchTMDB(allMovies).then(() => reRenderAll()); }
+    indicator.innerHTML = '✅ 更新完成';
     setTimeout(() => indicator.classList.remove('show'), 2000);
   } catch(e) {
     indicator.innerHTML = '⚠️ 刷新失败，请检查网络';
@@ -1466,7 +1398,6 @@ function updateStats() {
 async function init() {
   document.getElementById('movieGrid').innerHTML = renderSkeletons(6);
 
-  // Load from cache first for instant display
   const cache = getCache();
   if (cache && cache.data.length > 0) {
     allMovies = cache.data;
@@ -1477,7 +1408,6 @@ async function init() {
   }
 
   try {
-    // Load multiple pages of data for completeness
     allMovies = await loadAllData();
     setCache(allMovies);
     renderBanner(allMovies.slice(0, 6));
@@ -1485,13 +1415,9 @@ async function init() {
     renderMovieGrid();
     updateStats();
 
-    // Load TMDB + fallback posters in background
     if (tmdbEnabled()) {
       batchTMDB(allMovies).then(() => reRenderAll());
     }
-    // Always try fallback poster search
-    loadFallbackPosters(allMovies).then(() => reRenderAll());
-
   } catch(e) {
     if (allMovies.length === 0) {
       document.getElementById('movieGrid').innerHTML = '<div class="status-bar error">加载失败<br><small>'+(e.message||'网络错误')+'</small></div>';
