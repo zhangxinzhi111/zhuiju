@@ -86,11 +86,11 @@ transition:transform 0.2s;
 @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
 
 /* ===== BANNER ===== */
-.banner-wrap{margin:0 -4px 12px;}
+.banner-wrap{margin:0 -4px 12px;position:relative;}
 .banner-scroll{
 display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x mandatory;
 -webkit-overflow-scrolling:touch;padding:0 4px 4px;
-scrollbar-width:none;
+scrollbar-width:none;scroll-behavior:smooth;
 }
 .banner-scroll::-webkit-scrollbar{display:none;}
 .banner-card{
@@ -160,13 +160,13 @@ margin:0 4px 8px;
 .section-title .icon{font-size:16px;}
 .section-count{font-size:10px;color:var(--text3);}
 
-/* ===== COMPACT GRID (2.5 columns on wider screens, 2 on narrow) ===== */
+/* ===== COMPACT GRID ===== */
 .movie-grid{
 display:grid;grid-template-columns:repeat(auto-fill, minmax(140px, 1fr));
 gap:8px;
 }
 
-/* ===== MOVIE CARD (compact) ===== */
+/* ===== MOVIE CARD ===== */
 .movie-card{
 border-radius:var(--radius);overflow:hidden;background:var(--surface);
 border:1px solid var(--border);cursor:pointer;
@@ -236,7 +236,7 @@ padding:2px 6px;border-radius:6px;
 display:flex;align-items:center;gap:2px;
 }
 
-/* ===== DETAIL SHEET (compact) ===== */
+/* ===== DETAIL SHEET ===== */
 .sheet-overlay{
 position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.6);
 backdrop-filter:blur(4px);display:none;align-items:flex-end;
@@ -412,7 +412,7 @@ pointer-events:none;
 <!-- Header -->
 <div class="header">
 <div class="header-top">
-<div class="logo">追剧<span class="logo-sub">v7</span></div>
+<div class="logo">追剧<span class="logo-sub">v8</span></div>
 <div class="stats-row">
 <span class="stat-badge"><span class="dot"></span><span id="updateCount">加载中</span></span>
 </div>
@@ -527,7 +527,7 @@ onkeydown="if(event.key==='Enter')doSearch()">
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
 <script>
 // ============ CONFIG ============
-const APP_VERSION = 7;
+const APP_VERSION = 8;
 const UPDATE_URL = 'https://zhangxinzhi111.github.io/zhuiju/';
 const API_BASE = 'https://api.apibdzy.com/api.php/provide/vod/';
 const CORS_PROXIES = ['https://api.codetabs.com/v1/proxy?quest='];
@@ -539,7 +539,7 @@ const CACHE_TTL = 24 * 60 * 60 * 1000;
 const TMDB_API_KEY = 'c81b4bd5ee528e1228e9751b779b9ff8';
 const TMDB_BASE = 'https://api.themoviedb.org/3';
 const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p/';
-const TMDB_POSTER_SIZE = 'w342'; // w92, w154, w185, w342, w500, w780, original
+const TMDB_POSTER_SIZE = 'w342';
 
 let currentPage = 'watch';
 let currentCategory = '全部';
@@ -555,7 +555,8 @@ let sheetData = null;
 let bannerTimer = null;
 let bannerIdx = 0;
 let bannerItems = [];
-let tmdbCache = {}; // { movieName: { poster, rating, year, overview } }
+let tmdbCache = {};
+let posterCache = {}; // fallback poster cache: { movieName: imageUrl }
 
 // ============ TMDB API ============
 function tmdbEnabled() {
@@ -564,25 +565,19 @@ function tmdbEnabled() {
 
 async function searchTMDB(query) {
   if (!tmdbEnabled()) return null;
-  // Check cache first
   if (tmdbCache[query]) return tmdbCache[query];
   try {
     const proxy = CORS_PROXIES[0];
-    // Build TMDB search URL — DON'T encodeURIComponent the whole thing, proxy needs raw URL
     const tmdbUrl = TMDB_BASE + '/search/multi?api_key=' + TMDB_API_KEY + '&language=zh-CN&query=' + encodeURIComponent(query) + '&page=1';
     const resp = await fetch(proxy + tmdbUrl, { signal: AbortSignal.timeout(8000) });
     if (!resp.ok) return null;
     const data = await resp.json();
     if (!data.results || data.results.length === 0) return null;
-    // Try to find the best match (prefer movies/shows over people)
     let best = null;
     for (const r of data.results) {
-      if (r.media_type === 'movie' || r.media_type === 'tv') {
-        best = r; break;
-      }
+      if (r.media_type === 'movie' || r.media_type === 'tv') { best = r; break; }
     }
     if (!best) best = data.results[0];
-    // TMDB image also needs proxy in China — use codetabs image proxy
     const result = {
       poster: best.poster_path ? (proxy + encodeURIComponent(TMDB_IMAGE_BASE + TMDB_POSTER_SIZE + best.poster_path)) : null,
       rating: best.vote_average ? best.vote_average.toFixed(1) : null,
@@ -597,11 +592,102 @@ async function searchTMDB(query) {
   }
 }
 
+// ============ DUCKDUCKGO IMAGE SEARCH (fallback when TMDB fails) ============
+async function searchImageDDG(query) {
+  if (posterCache[query]) return posterCache[query];
+  try {
+    const proxy = CORS_PROXIES[0];
+    // Use DuckDuckGo image search via HTML scraping (no API key needed)
+    const searchUrl = 'https://duckduckgo.com/?q=' + encodeURIComponent(query + ' 电影海报') + '&iar=images&iax=images&ia=images';
+    const resp = await fetch(proxy + searchUrl, { signal: AbortSignal.timeout(8000) });
+    if (!resp.ok) return null;
+    const html = await resp.text();
+    // Try to extract vqd token and image results
+    const vqdMatch = html.match(/vqd=([0-9-]+)/);
+    if (!vqdMatch) return null;
+    const vqd = vqdMatch[1];
+    // Use DDG image API
+    const imgApiUrl = 'https://duckduckgo.com/i.js?l=us-en&o=json&q=' + encodeURIComponent(query + ' 电影海报') + '&vqd=' + vqd;
+    const imgResp = await fetch(proxy + imgApiUrl, { signal: AbortSignal.timeout(8000) });
+    if (!imgResp.ok) return null;
+    const imgData = await imgResp.json();
+    if (imgData.results && imgData.results.length > 0) {
+      // Filter for reasonable image sizes
+      const good = imgData.results.filter(r => r.width > 100 && r.height > 150);
+      if (good.length > 0) {
+        const url = good[0].image || good[0].thumbnail;
+        posterCache[query] = url;
+        return url;
+      }
+    }
+    return null;
+  } catch(e) {
+    return null;
+  }
+}
+
+// ============ BING IMAGE SEARCH FALLBACK ============
+async function searchImageBing(query) {
+  if (posterCache[query]) return posterCache[query];
+  try {
+    const proxy = CORS_PROXIES[0];
+    const searchUrl = 'https://cn.bing.com/images/search?q=' + encodeURIComponent(query + ' 海报 cover') + '&form=HDRSC2&first=1';
+    const resp = await fetch(proxy + searchUrl, { signal: AbortSignal.timeout(8000) });
+    if (!resp.ok) return null;
+    const html = await resp.text();
+    // Parse Bing image results - look for murl or mediaurl in the HTML
+    const matches = html.match(/murl&quot;:&quot;(https?:[^&]+\.(jpg|jpeg|png|webp)[^&]*)&quot;/g);
+    if (matches && matches.length > 0) {
+      const url = matches[0].replace(/murl&quot;:&quot;/, '').replace(/&quot;$/, '').replace(/\\u002f/g, '/');
+      posterCache[query] = url;
+      return url;
+    }
+    return null;
+  } catch(e) {
+    return null;
+  }
+}
+
+// ============ UNIFIED POSTER SEARCH (TMDB → DDG → Bing → null) ============
+async function searchPoster(query) {
+  if (posterCache[query]) return posterCache[query];
+
+  // Try TMDB first
+  const tmdb = await searchTMDB(query);
+  if (tmdb && tmdb.poster) {
+    posterCache[query] = tmdb.poster;
+    return tmdb.poster;
+  }
+
+  // Try DuckDuckGo
+  const ddg = await searchImageDDG(query);
+  if (ddg) return ddg;
+
+  // Try Bing
+  const bing = await searchImageBing(query);
+  if (bing) return bing;
+
+  return null;
+}
+
 async function batchTMDB(movies) {
   if (!tmdbEnabled()) return;
-  // Batch load TMDB data for first 15 movies (avoid too many API calls)
-  const batch = movies.slice(0, 15);
+  const batch = movies.slice(0, 20);
   const promises = batch.map(m => searchTMDB(m.vod_name));
+  await Promise.allSettled(promises);
+}
+
+// ============ FALLBACK POSTER LOADING (search-based) ============
+async function loadFallbackPosters(movies) {
+  const toLoad = movies.filter(m => {
+    const name = m.vod_name;
+    // Skip if already has TMDB poster or fallback poster
+    if (tmdbCache[name] && tmdbCache[name].poster) return false;
+    if (posterCache[name]) return false;
+    return true;
+  }).slice(0, 10); // Limit to 10 searches to avoid rate limiting
+
+  const promises = toLoad.map(m => searchPoster(m.vod_name));
   await Promise.allSettled(promises);
 }
 
@@ -618,12 +704,13 @@ function posterColor(name) {
 }
 
 function getPosterURL(item) {
-  // Priority: TMDB poster > API vod_pic > null
+  // Priority: TMDB > fallback posterCache > API vod_pic > null
   if (tmdbEnabled()) {
     const tmdb = tmdbCache[item.vod_name];
     if (tmdb && tmdb.poster) return tmdb.poster;
   }
-  // Try API's own vod_pic through proxy (many CDNs blocked in China)
+  if (posterCache[item.vod_name]) return posterCache[item.vod_name];
+  // Try API's own vod_pic through proxy
   if (item.vod_pic && item.vod_pic.startsWith('http')) {
     return CORS_PROXIES[0] + encodeURIComponent(item.vod_pic);
   }
@@ -724,6 +811,32 @@ function parseXMLVod(xml) {
   return items;
 }
 
+// ============ LOAD MORE DATA (multiple pages) ============
+async function loadAllData() {
+  const results = [];
+  // Load pages 1-3 to get more complete data
+  for (let pg = 1; pg <= 3; pg++) {
+    try {
+      const result = await apiCall({ pg: pg });
+      if (result.list && result.list.length > 0) {
+        results.push(...result.list);
+      }
+      // If fewer than 20 results, probably end of list
+      if (!result.list || result.list.length < 20) break;
+    } catch(e) {
+      // Continue even if one page fails
+      break;
+    }
+  }
+  // Deduplicate by vod_id
+  const seen = new Set();
+  return results.filter(m => {
+    if (seen.has(m.vod_id)) return false;
+    seen.add(m.vod_id);
+    return true;
+  });
+}
+
 async function fetchDetail(vodId) { return apiCall({ ac: 'detail', ids: vodId }); }
 
 function parsePlayUrls(playUrl, playFrom) {
@@ -758,18 +871,29 @@ function setCache(data) {
   localStorage.setItem(CACHE_KEY, JSON.stringify({ data, cachedAt: Date.now() }));
 }
 
-// ============ RENDER: BANNER ============
+// ============ RENDER: BANNER (FIXED AUTOPLAY) ============
+let bannerScrollListener = null;
+
 function renderBanner(items) {
   const scroll = document.getElementById('bannerScroll');
   const dots = document.getElementById('bannerDots');
-  bannerItems = items.slice(0, 5);
+  bannerItems = items.slice(0, 6);
   bannerIdx = 0;
+
+  // Stop existing timer
+  if (bannerTimer) { clearInterval(bannerTimer); bannerTimer = null; }
+
+  // Remove old scroll listener
+  if (bannerScrollListener) {
+    scroll.removeEventListener('scroll', bannerScrollListener);
+  }
 
   scroll.innerHTML = bannerItems.map((item, i) => {
     const c = posterColor(item.vod_name);
     const pic = getPosterURL(item);
-    return '<div class="banner-card" onclick="openSheet('+item.vod_id+',\''+escapeHTML(item.vod_name).replace(/'/g,"\\'")+'\')">'+
-      (pic ? '<img src="'+pic+'" loading="lazy" onerror="this.style.display=\'none\'">' : '')+
+    const nameSafe = escapeHTML(item.vod_name).replace(/'/g, "\\'");
+    return '<div class="banner-card" onclick="openSheet('+item.vod_id+',\''+nameSafe+'\')">'+
+      (pic ? '<img src="'+pic+'" loading="eager" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'">' : '')+
       '<div class="banner-bg" style="'+(pic?'display:none':'')+'background:linear-gradient(135deg,'+c[0]+','+c[1]+')">'+ (item.vod_name||'?')[0] +'</div>'+
       '<div class="banner-overlay"></div>'+
       '<div class="banner-info">'+
@@ -782,27 +906,42 @@ function renderBanner(items) {
 
   dots.innerHTML = bannerItems.map((_,i) => '<div class="banner-dot'+(i===0?' active':'')+'" onclick="scrollBanner('+i+')"></div>').join('');
 
-  if (bannerTimer) clearInterval(bannerTimer);
+  // Start autoplay - use manual scrollLeft calculation for reliability
   bannerTimer = setInterval(() => {
+    if (bannerItems.length === 0) return;
     bannerIdx = (bannerIdx + 1) % bannerItems.length;
-    scrollBanner(bannerIdx);
-  }, 4000);
+    autoScrollBanner(bannerIdx);
+  }, 3500);
 
-  scroll.addEventListener('scroll', () => {
-    const idx = Math.round(scroll.scrollLeft / (scroll.clientWidth * 0.85));
-    if (idx !== bannerIdx && idx < bannerItems.length) {
+  // Track scroll position for dot updates
+  bannerScrollListener = () => {
+    const cardWidth = scroll.querySelector('.banner-card');
+    if (!cardWidth) return;
+    const w = cardWidth.offsetWidth + 8; // 8px gap
+    const idx = Math.round(scroll.scrollLeft / w);
+    if (idx >= 0 && idx < bannerItems.length && idx !== bannerIdx) {
       bannerIdx = idx;
       updateBannerDots();
     }
-  });
+  };
+  scroll.addEventListener('scroll', bannerScrollListener, { passive: true });
+}
+
+function autoScrollBanner(idx) {
+  const scroll = document.getElementById('bannerScroll');
+  if (!scroll) return;
+  const cards = scroll.querySelectorAll('.banner-card');
+  if (!cards.length) return;
+  const cardWidth = cards[0].offsetWidth;
+  const gap = 8;
+  const targetScroll = idx * (cardWidth + gap);
+  scroll.scrollTo({ left: targetScroll, behavior: 'smooth' });
+  bannerIdx = idx;
+  updateBannerDots();
 }
 
 function scrollBanner(idx) {
-  const scroll = document.getElementById('bannerScroll');
-  const cards = scroll.querySelectorAll('.banner-card');
-  if (cards[idx]) cards[idx].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-  bannerIdx = idx;
-  updateBannerDots();
+  autoScrollBanner(idx);
 }
 
 function updateBannerDots() {
@@ -811,7 +950,7 @@ function updateBannerDots() {
 
 // ============ RENDER: CATEGORY ============
 const CATEGORIES = ['全部', '电影', '电视剧', '动漫', '综艺'];
-let sortMode = 'hot'; // 'hot' or 'new'
+let sortMode = 'hot';
 
 function renderCategoryBar() {
   let html = '';
@@ -876,7 +1015,6 @@ function getFilteredMovies() {
     if (c === '综艺') return t.includes('综艺') || t.includes('variety');
     return true;
   });
-  // Sort: 'hot' = keep API order (already sorted by popularity), 'new' = try to extract year
   if (sortMode === 'new') {
     list.sort((a, b) => {
       const ya = extractYear(a), yb = extractYear(b);
@@ -887,12 +1025,10 @@ function getFilteredMovies() {
 }
 
 function extractYear(item) {
-  // Try to get year from vod_remarks (often like "2024" or "第1集")
   if (item.vod_remarks) {
     const m = item.vod_remarks.match(/(\d{4})/);
     if (m) return parseInt(m[1]);
   }
-  // Try type_name or other fields
   const combined = (item.vod_name + ' ' + (item.type_name || '') + ' ' + (item.vod_remarks || ''));
   const m = combined.match(/(\d{4})/);
   if (m) return parseInt(m[1]);
@@ -933,14 +1069,12 @@ async function openSheet(vodId, vodName) {
     if (detail.vod_year) metaHTML += '<span class="tag">'+escapeHTML(detail.vod_year)+'</span>';
     if (detail.vod_area) metaHTML += '<span class="tag">'+escapeHTML(detail.vod_area)+'</span>';
     if (detail.vod_remarks) metaHTML += '<span class="tag">'+escapeHTML(detail.vod_remarks)+'</span>';
-    // TMDB rating
     if (tmdbEnabled()) {
       const tmdb = tmdbCache[detail.vod_name];
       if (tmdb && tmdb.rating) metaHTML += '<span class="tag" style="color:var(--gold);background:rgba(249,202,36,0.1)">⭐ '+tmdb.rating+'</span>';
     }
     document.getElementById('sheetMeta').innerHTML = metaHTML || '<span class="tag">暂无信息</span>';
 
-    // Use TMDB overview if available
     let desc = detail.vod_blurb || detail.vod_content || '';
     if (!desc && tmdbEnabled()) {
       const tmdb = tmdbCache[detail.vod_name];
@@ -1235,7 +1369,7 @@ function closePlayer() {
 function startProgressSaver() { stopProgressSaver(); historySaveTimer = setInterval(() => { if(playerVideo&&currentPlayData) saveCurrentProgress(); }, 10000); }
 function stopProgressSaver() { if(historySaveTimer){clearInterval(historySaveTimer);historySaveTimer=null;} }
 
-// ============ PAGES — FIXED: no auto scroll to top ============
+// ============ PAGES ============
 function switchPage(page) {
   currentPage = page;
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -1246,7 +1380,6 @@ function switchPage(page) {
   if (navs[page] !== undefined) document.querySelectorAll('.nav-item')[navs[page]].classList.add('active');
   if (page === 'favorites') renderFavorites();
   if (page === 'history') renderHistory();
-  // REMOVED: window.scrollTo({top:0, behavior:'smooth'});
 }
 
 // ============ SEARCH ============
@@ -1290,24 +1423,31 @@ async function refreshData() {
   indicator.innerHTML = '<span class="pull-spinner"></span>正在刷新...';
   indicator.classList.add('show');
   try {
-    const result = await apiCall({});
     const oldCount = allMovies.length;
-    allMovies = result.list || [];
+    allMovies = await loadAllData();
     setCache(allMovies);
-    if (tmdbEnabled()) batchTMDB(allMovies).then(() => {
-      renderBanner(allMovies.slice(0, 5));
-      renderMovieGrid();
-    });
-    renderBanner(allMovies.slice(0, 5));
+    renderBanner(allMovies.slice(0, 6));
     renderMovieGrid();
+    updateStats();
+    // Load posters in background
+    if (tmdbEnabled()) {
+      batchTMDB(allMovies).then(() => reRenderAll());
+    }
+    loadFallbackPosters(allMovies).then(() => reRenderAll());
     const newCount = allMovies.length - oldCount;
     indicator.innerHTML = '✅ 更新完成'+(newCount>0?'，新增 '+newCount+' 部':'');
-    updateStats();
     setTimeout(() => indicator.classList.remove('show'), 2000);
   } catch(e) {
     indicator.innerHTML = '⚠️ 刷新失败，请检查网络';
     setTimeout(() => indicator.classList.remove('show'), 2000);
   }
+}
+
+function reRenderAll() {
+  renderBanner(allMovies.slice(0, 6));
+  renderMovieGrid();
+  if (currentPage === 'favorites') renderFavorites();
+  if (currentPage === 'history') renderHistory();
 }
 
 // ============ TOAST ============
@@ -1326,32 +1466,32 @@ function updateStats() {
 async function init() {
   document.getElementById('movieGrid').innerHTML = renderSkeletons(6);
 
+  // Load from cache first for instant display
   const cache = getCache();
   if (cache && cache.data.length > 0) {
     allMovies = cache.data;
-    renderBanner(allMovies.slice(0, 5));
+    renderBanner(allMovies.slice(0, 6));
     renderCategoryBar();
     renderMovieGrid();
     updateStats();
   }
 
   try {
-    const result = await apiCall({});
-    allMovies = result.list || [];
+    // Load multiple pages of data for completeness
+    allMovies = await loadAllData();
     setCache(allMovies);
-    renderBanner(allMovies.slice(0, 5));
+    renderBanner(allMovies.slice(0, 6));
     renderCategoryBar();
     renderMovieGrid();
     updateStats();
-    // Load TMDB posters in background, then re-render when done
+
+    // Load TMDB + fallback posters in background
     if (tmdbEnabled()) {
-      batchTMDB(allMovies).then(() => {
-        renderBanner(allMovies.slice(0, 5));
-        renderMovieGrid();
-        renderFavorites();
-        renderHistory();
-      });
+      batchTMDB(allMovies).then(() => reRenderAll());
     }
+    // Always try fallback poster search
+    loadFallbackPosters(allMovies).then(() => reRenderAll());
+
   } catch(e) {
     if (allMovies.length === 0) {
       document.getElementById('movieGrid').innerHTML = '<div class="status-bar error">加载失败<br><small>'+(e.message||'网络错误')+'</small></div>';
