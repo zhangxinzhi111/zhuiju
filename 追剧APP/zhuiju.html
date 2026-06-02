@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, shrink-to-fit=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0f0f1a">
+<meta name="x5-fullscreen" content="true">
+<meta name="x5-page-mode" content="app">
+<meta name="browsermode" content="application">
+<meta name="full-screen" content="yes">
+<meta name="layoutmode" content="standard">
+<meta name="wap-font-scale" content="no">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<link rel="manifest" href="/manifest.json">
+<title>追剧 - 发现好剧，在线观影</title>
+<style>
+:root{
+--bg:#0f0f1a;--surface:#1a1a2e;--surface2:#242440;--text:#e8e8f0;--text2:#9898b0;
+--accent:#e85d75;--accent2:#7c5ce7;--gold:#f5c842;--green:#4ade80;
+--radius:12px;--radius-sm:8px;
+--safe-bottom:env(safe-area-inset-bottom, 16px);
+--safe-top:env(safe-area-inset-top, 0px);
+--status-bar:24px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+background:var(--bg);color:var(--text);min-height:100dvh;padding-bottom:calc(64px + var(--safe-bottom));
+-webkit-tap-highlight-color:transparent;-webkit-font-smoothing:antialiased;
+}
+.header{position:sticky;top:0;z-index:100;background:var(--bg);padding:calc(var(--safe-top) + 10px) 16px 10px;border-bottom:1px solid rgba(255,255,255,0.06);}
+.header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.logo{font-size:22px;font-weight:800;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.search-box{display:flex;gap:8px;}
+.search-input{flex:1;height:40px;border-radius:20px;border:1.5px solid var(--surface2);background:var(--surface);color:var(--text);padding:0 16px;font-size:14px;outline:none;transition:border-color 0.2s;}
+.search-input:focus{border-color:var(--accent2);}
+.search-input::placeholder{color:var(--text2);}
+.search-btn{height:40px;padding:0 18px;border-radius:20px;border:none;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;}
+.search-btn:active{opacity:0.85;}
+.content{padding:0 16px 16px;}
+.page{display:none;}
+.page.active{display:block;}
+.section-title{font-size:17px;font-weight:700;margin:18px 0 10px;display:flex;align-items:center;gap:8px;}
+.result-list{display:flex;flex-direction:column;gap:10px;}
+.result-card{display:flex;gap:10px;background:var(--surface);border-radius:var(--radius);padding:10px;cursor:pointer;transition:transform 0.15s;}
+.result-card:active{transform:scale(0.98);}
+.result-card .poster-sm{width:72px;height:108px;border-radius:var(--radius-sm);background:var(--surface2);flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center;color:var(--text2);font-size:24px;font-weight:700;}
+.result-card .poster-sm img{width:100%;height:100%;object-fit:cover;}
+.result-card .detail{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;}
+.result-card .detail .title{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.result-card .detail .meta{font-size:11px;color:var(--text2);margin-top:4px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.result-card .detail .meta .tag{font-size:10px;padding:1px 7px;border-radius:8px;background:var(--surface2);}
+.result-card .detail .meta .tag.playable{background:rgba(74,222,128,0.15);color:var(--green);}
+.result-card .detail .desc{font-size:11px;color:var(--text2);margin-top:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.4;}
+.result-card .detail .actions{margin-top:6px;display:flex;gap:6px;}
+.btn-sm{height:28px;padding:0 12px;border-radius:14px;border:none;font-size:11px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:4px;}
+.btn-sm-play{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;}
+.btn-sm-fav{background:rgba(245,200,66,0.15);color:var(--gold);border:1px solid rgba(245,200,66,0.2);}
+.btn-sm-fav.active{background:var(--gold);color:var(--surface);border-color:var(--gold);}
+/* Player Page */
+.player-page{position:fixed;inset:0;z-index:300;background:#000;display:flex;flex-direction:column;}
+.player-header{display:flex;align-items:center;padding:8px 12px;gap:8px;background:rgba(0,0,0,0.8);z-index:10;}
+.player-header .back-btn{width:32px;height:32px;border-radius:50%;border:none;background:rgba(255,255,255,0.15);color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.player-header .player-title{flex:1;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.player-container{flex:1;background:#000;display:flex;align-items:center;justify-content:center;position:relative;}
+.player-container video{width:100%;height:100%;max-height:100dvh;object-fit:contain;}
+.player-container .player-placeholder{text-align:center;color:var(--text2);padding:20px;}
+.episode-bar{padding:10px 12px;background:var(--surface);overflow-y:auto;max-height:180px;display:flex;flex-wrap:wrap;gap:6px;align-content:flex-start;scrollbar-width:thin;scrollbar-color:var(--surface2) transparent;flex-shrink:0;padding-bottom:calc(10px + var(--safe-bottom));}
+.episode-bar::-webkit-scrollbar{width:4px;}
+.episode-bar::-webkit-scrollbar-thumb{background:var(--surface2);border-radius:2px;}
+.episode-btn{flex:0 0 auto;min-width:48px;height:32px;border-radius:8px;border:1.5px solid var(--surface2);background:var(--surface);color:var(--text);font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;padding:0 10px;}
+.episode-btn.active{background:var(--accent2);border-color:var(--accent2);color:#fff;font-weight:600;}
+.episode-btn.watched{border-color:rgba(74,222,128,0.5);background:rgba(74,222,128,0.08);}
+.episode-btn.watched::after{content:' ✓';font-size:9px;color:var(--green);}
+.episode-btn.active.watched::after{color:#fff;}
+.source-select{padding:8px 12px;background:var(--surface);display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;border-top:1px solid rgba(255,255,255,0.06);flex-shrink:0;}
+.source-select::-webkit-scrollbar{display:none;}
+.source-btn{flex:0 0 auto;height:28px;padding:0 12px;border-radius:14px;border:1px solid var(--surface2);background:var(--surface);color:var(--text2);font-size:11px;cursor:pointer;}
+.source-btn.active{background:rgba(124,92,231,0.2);border-color:var(--accent2);color:var(--accent2);}
+/* Bottom Nav */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:100;background:rgba(15,15,26,0.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,0.06);display:flex;padding-bottom:var(--safe-bottom);}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px 0;gap:3px;border:none;background:none;color:var(--text2);font-size:10px;cursor:pointer;transition:color 0.2s;}
+.nav-item .nav-icon{font-size:18px;}
+.nav-item.active{color:var(--accent);}
+/* Favorites */
+.fav-actions{display:flex;justify-content:flex-end;margin-bottom:8px;}
+.btn-text{background:none;border:none;color:var(--accent);font-size:12px;cursor:pointer;padding:4px 8px;}
+.empty-state{text-align:center;padding:50px 20px;color:var(--text2);}
+.empty-state .icon{font-size:40px;margin-bottom:10px;}
+.empty-state p{font-size:13px;line-height:1.6;}
+/* Status */
+.status-bar{text-align:center;padding:12px;color:var(--text2);font-size:12px;}
+.status-bar.error{color:var(--accent);}
+/* Skeleton */
+.skeleton{background:linear-gradient(90deg,var(--surface) 25%,var(--surface2) 50%,var(--surface) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:var(--radius-sm);}
+@keyframes shimmer{0%{background-position:200% 0;}100%{background-position:-200% 0;}}
+.skeleton-poster{width:72px;height:108px;border-radius:var(--radius-sm);flex-shrink:0;}
+.skeleton-line{height:12px;margin-bottom:7px;border-radius:6px;}
+.skeleton-line.short{width:60%;}.skeleton-line.xshort{width:35%;}
+/* About */
+.about-card{background:var(--surface);border-radius:var(--radius);padding:20px;text-align:center;margin-top:20px;}
+.about-card h3{font-size:18px;margin-bottom:8px;}
+.about-card p{font-size:12px;color:var(--text2);line-height:1.8;}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+<div class="header-top"><div class="logo">追剧</div></div>
+<div class="search-box">
+<input class="search-input" id="searchInput" type="text" placeholder="输入片名，搜索即播..."
+onkeydown="if(event.key==='Enter')doSearch()">
+<button class="search-btn" onclick="doSearch()">搜索</button>
+</div>
+</div>
+
+<!-- Content -->
+<div class="content">
+
+<!-- 观影页 -->
+<div class="page active" id="page-watch">
+<div class="section-title">🔥 最近热播</div>
+<div class="result-list" id="hotList"></div>
+<div class="status-bar" id="hotStatus"></div>
+</div>
+
+<!-- 搜索结果页 -->
+<div class="page" id="page-search">
+<div class="section-title">🔍 搜索 "<span id="searchQuery"></span>"</div>
+<div class="result-list" id="searchResults"></div>
+<div class="status-bar" id="searchStatus"></div>
+</div>
+
+<!-- 收藏页 -->
+<div class="page" id="page-favorites">
+<div class="fav-actions"><button class="btn-text" onclick="clearFavorites()">清空全部</button></div>
+<div class="result-list" id="favList"></div>
+<div class="empty-state" id="favEmpty">
+<div class="icon">💔</div><p>还没有收藏<br>去观影页搜索好剧吧~</p>
+</div>
+</div>
+
+<!-- 历史页 -->
+<div class="page" id="page-history">
+<div class="fav-actions"><button class="btn-text" onclick="clearHistory()">清空全部</button></div>
+<div class="result-list" id="historyList"></div>
+<div class="empty-state" id="historyEmpty">
+<div class="icon">📺</div><p>暂无观看记录<br>去搜一部剧开始追吧~</p>
+</div>
+</div>
+
+<!-- 关于页 -->
+<div class="page" id="page-about">
+<div class="about-card">
+<h3>📺 追剧</h3>
+<p>聚合全网影视资源<br>搜索即播，免费观影<br>数据来源：苹果CMS采集接口<br>播放器：HLS.js / HTML5 Video<br><br><small>v2.0 独立版 · 无需电脑</small></p>
+</div>
+</div>
+</div>
+
+<!-- 播放器页面 -->
+<div class="player-page" id="playerPage" style="display:none;">
+<div class="player-header">
+<button class="back-btn" onclick="closePlayer()">✕</button>
+<div class="player-title" id="playerTitle">播放中</div>
+</div>
+<div class="player-container" id="playerContainer">
+<div class="player-placeholder">🎬 正在加载播放器...</div>
+</div>
+<div class="source-select" id="sourceSelect"></div>
+<div class="episode-bar" id="episodeBar"></div>
+</div>
+
+<!-- Bottom Nav -->
+<div class="bottom-nav">
+<button class="nav-item active" onclick="switchPage('watch')"><span class="nav-icon">🎬</span>观影</button>
+<button class="nav-item" onclick="switchPage('search')"><span class="nav-icon">🔍</span>搜索</button>
+<button class="nav-item" onclick="switchPage('favorites')"><span class="nav-icon">❤️</span>收藏</button>
+<button class="nav-item" onclick="switchPage('history')"><span class="nav-icon">🕐</span>历史</button>
+<button class="nav-item" onclick="switchPage('about')"><span class="nav-icon">ℹ️</span>关于</button>
+</div>
+
+<!-- HLS.js -->
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
+<script>
+// ============ CONFIG ============
+// 版本号（云更新用，每次改代码请 +1）
+const APP_VERSION = 3;
+// 云更新地址（部署到 EdgeOne Pages 后填写你的 URL）
+const UPDATE_URL = 'https://main-jade-wbcw0owh.edgeone.app/zhuiju.html';
+
+// API 基础地址（苹果CMS采集接口）
+const API_BASE = 'https://api.apibdzy.com/api.php/provide/vod/';
+
+// CORS 代理列表（当直连被 CORS 拦截时，依次尝试）
+const CORS_PROXIES = [
+  'https://api.codetabs.com/v1/proxy?quest=',
+  'https://api.allorigins.win/raw?url=',
+  'https://corsproxy.io/?',
+  'https://cors-anywhere.herokuapp.com/',
+];
+
+// 视频解析接口（备用）
+const PARSE_APIS = [
+  'https://vip.52jiexi.top/?url=',
+  'https://jx.m3u8.tv/jiexi/?url=',
+  'https://www.kpezp.cn/jlexi.php?url=',
+];
+
+let currentPage = 'watch';
+let favorites = JSON.parse(localStorage.getItem('zhuiju_favs') || '[]');
+let history = JSON.parse(localStorage.getItem('zhuiju_history') || '[]');
+let playerVideo = null;
+let currentSourceIdx = 0;
+let currentEpIdx = 0;
+let historySaveTimer = null; // 定时保存播放进度
+
+// CORS 模式：0=未知, 1=直连可用, 2=需代理
+// 优先走代理（codetabs 稳定），直连在手机上大概率被 CORS 拦截
+let corsMode = 2;
+let activeCorsProxy = 0;
+
+// ============ API ============
+function buildApiUrl(ac, params) {
+  let url = API_BASE + '?ac=' + ac;
+  if (params.wd) url += '&wd=' + encodeURIComponent(params.wd);
+  if (params.ids) url += '&ids=' + encodeURIComponent(params.ids);
+  if (params.t) url += '&t=' + params.t;
+  if (params.pg) url += '&pg=' + params.pg;
+  return url;
+}
+
+async function tryApiCall(params) {
+  const ac = params.ac || 'list';
+  const directUrl = buildApiUrl(ac, params);
+  let lastError = null;
+
+  // 策略1：如果已知直连可用，直接请求
+  if (corsMode === 1) {
+    try {
+      return await fetchAndParse(directUrl, ac);
+    } catch (e) {
+      // 直连失败，降级到代理
+      corsMode = 2;
+    }
+  }
+
+  // 策略2：如果已知需要代理，直接用代理
+  if (corsMode === 2) {
+    for (let i = activeCorsProxy; i < CORS_PROXIES.length; i++) {
+      try {
+        const proxyUrl = CORS_PROXIES[i] + encodeURIComponent(directUrl);
+        const result = await fetchAndParse(proxyUrl, ac);
+        activeCorsProxy = i;
+        return result;
+      } catch (e) {
+        lastError = e;
+        continue;
+      }
+    }
+    // 所有代理都失败，尝试直连
+    try {
+      const result = await fetchAndParse(directUrl, ac);
+      corsMode = 1;
+      return result;
+    } catch (e2) {
+      throw lastError || e2;
+    }
+  }
+
+  // 策略3：未知模式，先尝试直连
+  try {
+    const result = await fetchAndParse(directUrl, ac);
+    corsMode = 1;
+    return result;
+  } catch (e) {
+    // 直连失败，尝试代理
+    for (let i = 0; i < CORS_PROXIES.length; i++) {
+      try {
+        const proxyUrl = CORS_PROXIES[i] + encodeURIComponent(directUrl);
+        const result = await fetchAndParse(proxyUrl, ac);
+        corsMode = 2;
+        activeCorsProxy = i;
+        return result;
+      } catch (e2) {
+        lastError = e2;
+        continue;
+      }
+    }
+    throw lastError || e;
+  }
+}
+
+async function fetchAndParse(url, ac) {
+  const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
+  if (!res.ok) {
+    const errText = await res.text().catch(() => '');
+    throw new Error('HTTP ' + res.status + ': ' + errText.substring(0, 100));
+  }
+  const text = await res.text();
+  let data;
+  try { data = JSON.parse(text); } catch (e) {
+    if (ac === 'detail') throw new Error('详情解析失败');
+    const list = parseXMLVod(text);
+    if (list.length > 0) return { list, total: list.length };
+    throw new Error('API 返回格式异常');
+  }
+
+  if (ac === 'detail') {
+    const item = data.list ? data.list[0] : data;
+    if (!item || !item.vod_id) throw new Error('详情数据为空');
+    return {
+      vod_id: item.vod_id,
+      vod_name: item.vod_name || item.title,
+      vod_pic: item.vod_pic || item.pic || '',
+      vod_remarks: item.vod_remarks || '',
+      vod_play_url: item.vod_play_url || '',
+      vod_play_from: item.vod_play_from || '',
+      type_name: item.type_name || item.type || '',
+      vod_actor: item.vod_actor || '',
+      vod_director: item.vod_director || '',
+      vod_blurb: item.vod_blurb || '',
+      vod_content: item.vod_content || '',
+      vod_year: item.vod_year || '',
+      vod_area: item.vod_area || '',
+    };
+  }
+
+  const list = (data.list || data.data || []).map(item => ({
+    vod_id: item.vod_id,
+    vod_name: item.vod_name || item.title,
+    vod_pic: item.vod_pic || item.pic || '',
+    vod_remarks: item.vod_remarks || '',
+    vod_play_url: item.vod_play_url || '',
+    vod_play_from: item.vod_play_from || '',
+    type_name: item.type_name || item.type || '',
+  }));
+  return { list, total: data.total || list.length };
+}
+
+async function fetchDetail(vodId) {
+  return tryApiCall({ ac: 'detail', ids: vodId });
+}
+
+function parseXMLVod(xmlStr) {
+  const items = [];
+  const regex = /<vod>([\s\S]*?)<\/vod>/g;
+  let match;
+  while ((match = regex.exec(xmlStr)) !== null) {
+    const block = match[1];
+    const getTag = (tag) => {
+      const m = block.match(new RegExp('<' + tag + '>(?:<!\\[CDATA\\[)?([\\s\\S]*?)(?:\\]\\]>)?<\\/' + tag + '>'));
+      return m ? m[1].trim() : '';
+    };
+    items.push({
+      vod_id: getTag('vod_id'),
+      vod_name: getTag('vod_name'),
+      vod_pic: getTag('vod_pic'),
+      vod_remarks: getTag('vod_remarks'),
+      vod_play_url: getTag('vod_play_url'),
+      vod_play_from: getTag('vod_play_from'),
+      type_name: getTag('type_name'),
+    });
+  }
+  return items;
+}
+
+// ============ 播放地址解析 ============
+function parsePlayUrls(playUrl, playFrom) {
+  if (!playUrl) return [];
+  const sources = playUrl.split('$$$');
+  const fromNames = playFrom ? playFrom.split('$$$') : [];
+  const result = [];
+  sources.forEach((source, si) => {
+    const name = fromNames[si] || '线路' + (si + 1);
+    const eps = [];
+    const parts = source.split('#');
+    parts.forEach(part => {
+      const sep = part.lastIndexOf('$');
+      if (sep > 0) {
+        const label = part.substring(0, sep).trim();
+        const url = part.substring(sep + 1).trim();
+        if (url) eps.push({ label, url });
+      }
+    });
+    if (eps.length > 0) result.push({ name, eps });
+  });
+  return result;
+}
+
+// ============ RENDER ============
+function posterHTML(item) {
+  if (item.vod_pic && item.vod_pic.startsWith('http')) {
+    return '<img src="' + item.vod_pic + '" loading="lazy" onerror="this.outerHTML=\'<div style=width:100%;height:100%;background:linear-gradient(135deg,#7c5ce7,#e85d75);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:#fff>' + (item.vod_name||'?')[0] + '</div>\'">';
+  }
+  const c = ['#e85d75','#7c5ce7','#4facfe','#43e97b','#f5c842','#fa709a'][Math.abs(hashCode(item.vod_name||''))%6];
+  return '<div style="width:100%;height:100%;background:linear-gradient(135deg,' + c + ',' + c + '88);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:#fff">' + (item.vod_name||'?')[0] + '</div>';
+}
+
+function hashCode(s) { let h=0; for(let i=0;i<s.length;i++){h=((h<<5)-h)+s.charCodeAt(i);h|=0;} return Math.abs(h); }
+
+function escapeHTML(str) {
+  if (!str) return '';
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+function renderResultCard(item) {
+  const id = item.vod_id;
+  const isFaved = isFav(id);
+  const hasPlay = !!item.vod_play_url;
+  const nameEscaped = escapeHTML(item.vod_name);
+  const nameSafe = nameEscaped.replace(/'/g, "\\'");
+  return '<div class="result-card">' +
+    '<div class="poster-sm">' + posterHTML(item) + '</div>' +
+    '<div class="detail">' +
+    '<div class="title">' + nameEscaped + '</div>' +
+    '<div class="meta">' +
+    (item.type_name ? '<span class="tag">' + escapeHTML(item.type_name) + '</span>' : '') +
+    (item.vod_remarks ? '<span class="tag">' + escapeHTML(item.vod_remarks) + '</span>' : '') +
+    (hasPlay ? '<span class="tag playable">可播放</span>' : '') +
+    '</div>' +
+    '<div class="actions">' +
+    '<button class="btn-sm btn-sm-play" onclick="event.stopPropagation();currentEpIdx=0;playItem(' + id + ',\'' + nameSafe + '\')">▶ 播放</button>' +
+    '<button class="btn-sm btn-sm-fav' + (isFaved ? ' active' : '') + '" onclick="event.stopPropagation();toggleFavItem({vod_id:' + id + ',vod_name:\'' + nameSafe + '\',vod_pic:\'' + (item.vod_pic||'').replace(/'/g,"\\'") + '\',vod_remarks:\'' + (item.vod_remarks||'').replace(/'/g,"\\'") + '\'})">' + (isFaved ? '❤️' : '🤍') + '</button>' +
+    '</div>' +
+    '</div>' +
+    '</div>';
+}
+
+function renderSkeletons(count) {
+  count = count || 6;
+  var h = '';
+  for (var i = 0; i < count; i++) {
+    h += '<div class="result-card"><div class="skeleton skeleton-poster"></div><div class="detail"><div class="skeleton skeleton-line"></div><div class="skeleton skeleton-line short"></div><div class="skeleton skeleton-line xshort"></div></div></div>';
+  }
+  return h;
+}
+
+// ============ FAVORITES ============
+function isFav(id) { return favorites.some(function(f) { return f.vod_id === id; }); }
+
+function toggleFavItem(item) {
+  var idx = -1;
+  for (var i = 0; i < favorites.length; i++) {
+    if (favorites[i].vod_id === item.vod_id) { idx = i; break; }
+  }
+  if (idx >= 0) favorites.splice(idx, 1);
+  else favorites.unshift(Object.assign({}, item, { savedAt: Date.now() }));
+  saveFavorites();
+}
+
+function saveFavorites() {
+  localStorage.setItem('zhuiju_favs', JSON.stringify(favorites));
+  renderFavorites();
+}
+
+function clearFavorites() {
+  if (!favorites.length) return;
+  if (!confirm('确定清空全部 ' + favorites.length + ' 个收藏？')) return;
+  favorites = [];
+  saveFavorites();
+}
+
+// ============ HISTORY ============
+function saveHistoryEntry(vodId, vodName, vodPic, sourceIdx, epIdx, epLabel, epUrl, currentTime, totalSources, totalEps, watchedEps) {
+  // 合并已看集数（去重）
+  var existing = history.find(function(h) { return h.vod_id === vodId; });
+  var allWatched = watchedEps || [];
+  if (existing && existing.watched_eps) {
+    allWatched = existing.watched_eps.concat(allWatched).filter(function(v, i, a) { return a.indexOf(v) === i; });
+  }
+  // 先移除同一剧集的旧记录
+  history = history.filter(function(h) { return h.vod_id !== vodId; });
+  // 新记录放最前面
+  history.unshift({
+    vod_id: vodId,
+    vod_name: vodName,
+    vod_pic: vodPic || '',
+    source_idx: sourceIdx,
+    ep_idx: epIdx,
+    ep_label: epLabel,
+    ep_url: epUrl,
+    current_time: currentTime || 0,
+    total_sources: totalSources,
+    total_eps: totalEps,
+    watched_eps: allWatched,
+    watched_at: Date.now()
+  });
+  // 最多保留50条
+  if (history.length > 50) history = history.slice(0, 50);
+  localStorage.setItem('zhuiju_history', JSON.stringify(history));
+}
+
+function saveCurrentProgress() {
+  if (!currentPlayData || !playerVideo) return;
+  var allSources = parsePlayUrls(currentPlayData.vod_play_url, currentPlayData.vod_play_from);
+  var src = allSources[currentSourceIdx];
+  if (!src || !src.eps[currentEpIdx]) return;
+  var ep = src.eps[currentEpIdx];
+  var t = playerVideo.currentTime || 0;
+
+  // 收集已看集数（当前源的所有已点过的集）
+  var watchedEps = [currentEpIdx];
+  var existing = history.find(function(h) { return h.vod_id === currentPlayData.vod_id; });
+  if (existing && existing.watched_eps) {
+    watchedEps = existing.watched_eps.concat(watchedEps).filter(function(v, i, a) { return a.indexOf(v) === i; });
+  }
+
+  saveHistoryEntry(
+    currentPlayData.vod_id,
+    currentPlayData.vod_name,
+    currentPlayData.vod_pic,
+    currentSourceIdx,
+    currentEpIdx,
+    ep.label,
+    ep.url,
+    t,
+    allSources.length,
+    src.eps.length,
+    watchedEps
+  );
+}
+
+function deleteHistoryEntry(vodId) {
+  history = history.filter(function(h) { return h.vod_id !== vodId; });
+  localStorage.setItem('zhuiju_history', JSON.stringify(history));
+  renderHistory();
+}
+
+function clearHistory() {
+  if (!history.length) return;
+  if (!confirm('确定清空全部 ' + history.length + ' 条观看记录？')) return;
+  history = [];
+  localStorage.setItem('zhuiju_history', JSON.stringify(history));
+  renderHistory();
+}
+
+function formatTimeAgo(ts) {
+  var diff = Date.now() - ts;
+  if (diff < 60000) return '刚刚';
+  if (diff < 3600000) return Math.floor(diff / 60000) + '分钟前';
+  if (diff < 86400000) return Math.floor(diff / 3600000) + '小时前';
+  if (diff < 604800000) return Math.floor(diff / 86400000) + '天前';
+  var d = new Date(ts);
+  return (d.getMonth() + 1) + '/' + d.getDate();
+}
+
+function renderHistory() {
+  var list = document.getElementById('historyList');
+  var empty = document.getElementById('historyEmpty');
+  if (history.length === 0) {
+    list.innerHTML = '';
+    empty.style.display = 'block';
+  } else {
+    list.innerHTML = history.map(function(h) {
+      var progress = h.total_eps > 0 ? '第' + (h.ep_idx + 1) + '/' + h.total_eps + '集' : h.ep_label;
+      var timeStr = h.current_time > 0 ? ' · ' + formatDuration(h.current_time) : '';
+      var nameEscaped = escapeHTML(h.vod_name);
+      var nameSafe = nameEscaped.replace(/'/g, "\\'");
+      return '<div class="result-card" onclick="resumeFromHistory(' + h.vod_id + ',' + h.source_idx + ',' + h.ep_idx + ')">' +
+        '<div class="poster-sm">' + posterHTML(h) + '</div>' +
+        '<div class="detail">' +
+        '<div class="title">' + nameEscaped + '</div>' +
+        '<div class="meta">' +
+        '<span class="tag playable">' + escapeHTML(progress) + '</span>' +
+        (h.current_time > 0 ? '<span class="tag">已看' + formatDuration(h.current_time) + '</span>' : '') +
+        '</div>' +
+        '<div class="desc">' + formatTimeAgo(h.watched_at) + '观看</div>' +
+        '<div class="actions">' +
+        '<button class="btn-sm btn-sm-play" onclick="event.stopPropagation();resumeFromHistory(' + h.vod_id + ',' + h.source_idx + ',' + h.ep_idx + ')">▶ 继续</button>' +
+        '<button class="btn-sm btn-sm-fav" onclick="event.stopPropagation();deleteHistoryEntry(' + h.vod_id + ')" style="background:rgba(232,93,117,0.15);color:#e85d75;border:1px solid rgba(232,93,117,0.2);">✕</button>' +
+        '</div>' +
+        '</div>' +
+        '</div>';
+    }).join('');
+    empty.style.display = 'none';
+  }
+}
+
+function formatDuration(seconds) {
+  if (!seconds || seconds < 1) return '0:00';
+  var m = Math.floor(seconds / 60);
+  var s = Math.floor(seconds % 60);
+  return m + ':' + (s < 10 ? '0' : '') + s;
+}
+
+async function resumeFromHistory(vodId, sourceIdx, epIdx) {
+  var container = document.getElementById('playerContainer');
+  container.innerHTML = '<div class="player-placeholder">⏳ 正在恢复播放...</div>';
+  var page = document.getElementById('playerPage');
+  page.style.display = 'flex';
+  document.querySelector('.bottom-nav').style.display = 'none';
+  document.querySelector('.header').style.display = 'none';
+  document.body.style.overflow = 'hidden';
+
+  try {
+    var detail = await fetchDetail(vodId);
+    if (!detail || !detail.vod_play_url) {
+      container.innerHTML = '<div class="player-placeholder">⚠️ 该影片暂无播放资源</div>';
+      return;
+    }
+    currentPlayData = detail;
+    document.getElementById('playerTitle').textContent = detail.vod_name;
+
+    var allSources = parsePlayUrls(detail.vod_play_url, detail.vod_play_from);
+    if (allSources.length === 0) {
+      container.innerHTML = '<div class="player-placeholder">⚠️ 无法解析播放地址</div>';
+      return;
+    }
+
+    // 恢复线路
+    currentSourceIdx = Math.min(sourceIdx, allSources.length - 1);
+    var src = allSources[currentSourceIdx];
+
+    var sourceSel = document.getElementById('sourceSelect');
+    sourceSel.innerHTML = allSources.map(function(s, i) {
+      return '<button class="source-btn' + (i === currentSourceIdx ? ' active' : '') + '" onclick="switchSource(' + i + ')">' + escapeHTML(s.name) + '</button>';
+    }).join('');
+
+    // 恢复集数
+    currentEpIdx = Math.min(epIdx, src.eps.length - 1);
+    renderEpisodes(src, currentEpIdx);
+
+    document.getElementById('playerPage').dataset.sources = JSON.stringify(allSources);
+
+    // 恢复播放时间点
+    var histEntry = history.find(function(h) { return h.vod_id === vodId; });
+    var resumeTime = histEntry ? histEntry.current_time || 0 : 0;
+    playEpisode(src.eps[currentEpIdx].url, null, resumeTime);
+  } catch (e) {
+    container.innerHTML = '<div class="player-placeholder">⚠️ 恢复播放失败<br><small>' + (e.message || '') + '</small></div>';
+  }
+}
+
+// ============ PLAYER ============
+var currentPlayData = null;
+
+async function playItem(vodId, vodName) {
+  var container = document.getElementById('playerContainer');
+  container.innerHTML = '<div class="player-placeholder">⏳ 正在获取播放地址...</div>';
+  var page = document.getElementById('playerPage');
+  page.style.display = 'flex';
+  document.getElementById('playerTitle').textContent = vodName;
+  document.querySelector('.bottom-nav').style.display = 'none';
+  document.querySelector('.header').style.display = 'none';
+  document.body.style.overflow = 'hidden';
+
+  try {
+    var detail = await fetchDetail(vodId);
+    if (!detail || !detail.vod_play_url) {
+      container.innerHTML = '<div class="player-placeholder">⚠️ 该影片暂无播放资源<br><small>可能未收录或接口异常</small></div>';
+      return;
+    }
+    currentPlayData = detail;
+    openPlayer(detail);
+  } catch (e) {
+    container.innerHTML = '<div class="player-placeholder">⚠️ 获取播放资源失败<br><small>' + (e.message || '') + '</small></div>';
+  }
+}
+
+function openPlayer(item) {
+  var page = document.getElementById('playerPage');
+  page.style.display = 'flex';
+  document.getElementById('playerTitle').textContent = item.vod_name;
+  document.querySelector('.bottom-nav').style.display = 'none';
+  document.querySelector('.header').style.display = 'none';
+  document.body.style.overflow = 'hidden';
+
+  var allSources = parsePlayUrls(item.vod_play_url, item.vod_play_from);
+  if (allSources.length === 0) {
+    document.getElementById('playerContainer').innerHTML = '<div class="player-placeholder">⚠️ 无法解析播放地址</div>';
+    return;
+  }
+
+  var sourceSel = document.getElementById('sourceSelect');
+  sourceSel.innerHTML = allSources.map(function(s, i) {
+    return '<button class="source-btn' + (i === 0 ? ' active' : '') + '" onclick="switchSource(' + i + ')">' + escapeHTML(s.name) + '</button>';
+  }).join('');
+
+  currentSourceIdx = 0;
+  currentEpIdx = 0;
+  renderEpisodes(allSources[0], 0);
+  playEpisode(allSources[0].eps[0].url);
+
+  page.dataset.sources = JSON.stringify(allSources);
+
+  // 启动定时保存进度（每10秒）
+  startProgressSaver();
+}
+
+function switchSource(idx) {
+  currentSourceIdx = idx;
+  currentEpIdx = 0;
+  var allSources = JSON.parse(document.getElementById('playerPage').dataset.sources);
+  var btns = document.querySelectorAll('.source-btn');
+  for (var i = 0; i < btns.length; i++) btns[i].classList.toggle('active', i === idx);
+  renderEpisodes(allSources[idx], 0);
+  if (allSources[idx].eps.length > 0) {
+    playEpisode(allSources[idx].eps[0].url);
+  }
+}
+
+function renderEpisodes(source, activeIdx) {
+  activeIdx = activeIdx || 0;
+  var bar = document.getElementById('episodeBar');
+  // 获取已看过的集数（从历史记录中）
+  var watchedEps = [];
+  if (currentPlayData) {
+    var hist = history.find(function(h) { return h.vod_id === currentPlayData.vod_id; });
+    if (hist) watchedEps = hist.watched_eps || [];
+  }
+
+  bar.innerHTML = source.eps.map(function(ep, i) {
+    var cls = 'episode-btn';
+    if (i === activeIdx) cls += ' active';
+    if (watchedEps.indexOf(i) >= 0) cls += ' watched';
+    return '<button class="' + cls + '" onclick="playEpisode(\'' + ep.url.replace(/'/g, "\\'") + '\', this)">' + escapeHTML(ep.label) + '</button>';
+  }).join('');
+
+  // 滚动到当前集
+  setTimeout(function() {
+    var activeBtn = bar.querySelector('.episode-btn.active');
+    if (activeBtn) {
+      activeBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }, 100);
+}
+
+function playEpisode(url, btnEl, resumeTime) {
+  if (btnEl) {
+    var btns = document.querySelectorAll('.episode-btn');
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].classList.remove('active');
+      if (btns[i] === btnEl) currentEpIdx = i;
+    }
+    btnEl.classList.add('active');
+  }
+  var container = document.getElementById('playerContainer');
+  if (playerVideo) {
+    if (playerVideo.hls) { playerVideo.hls.destroy(); playerVideo.hls = null; }
+    playerVideo.pause();
+    playerVideo.remove();
+    playerVideo = null;
+  }
+  container.innerHTML = '';
+
+  resumeTime = resumeTime || 0;
+
+  if (url.indexOf('.m3u8') >= 0 || url.indexOf('/m3u8/') >= 0) {
+    if (typeof Hls !== 'undefined' && Hls.isSupported()) {
+      var video = document.createElement('video');
+      video.controls = true;
+      video.autoplay = true;
+      video.playsInline = true;
+      video.setAttribute('x5-video-player-type', 'h5');
+      video.setAttribute('x5-video-player-fullscreen', 'true');
+      video.style.cssText = 'width:100%;height:100%;max-height:100dvh;object-fit:contain;';
+      container.appendChild(video);
+      var hls = new Hls({ enableWorker: false, startPosition: resumeTime });
+      hls.loadSource(url);
+      hls.attachMedia(video);
+      hls.on(Hls.Events.MANIFEST_PARSED, function() {
+        if (resumeTime > 0) video.currentTime = resumeTime;
+        video.play().catch(function(){});
+      });
+      hls.on(Hls.Events.ERROR, function(e, d) {
+        if (d.fatal) tryParseFallback(url);
+      });
+      playerVideo = video;
+      video.hls = hls;
+    } else {
+      var video2 = document.createElement('video');
+      video2.controls = true;
+      video2.autoplay = true;
+      video2.playsInline = true;
+      video2.src = url;
+      if (resumeTime > 0) video2.currentTime = resumeTime;
+      video2.style.cssText = 'width:100%;height:100%;max-height:100dvh;object-fit:contain;';
+      container.appendChild(video2);
+      playerVideo = video2;
+      video2.play().catch(function() { tryParseFallback(url); });
+    }
+  } else if (url.indexOf('http') === 0) {
+    var video3 = document.createElement('video');
+    video3.controls = true;
+    video3.autoplay = true;
+    video3.playsInline = true;
+    video3.src = url;
+    if (resumeTime > 0) video3.currentTime = resumeTime;
+    video3.style.cssText = 'width:100%;height:100%;max-height:100dvh;object-fit:contain;';
+    container.appendChild(video3);
+    playerVideo = video3;
+    video3.play().catch(function() { tryParseFallback(url); });
+  } else {
+    container.innerHTML = '<div class="player-placeholder">⚠️ 不支持的播放地址格式</div>';
+  }
+}
+
+function tryParseFallback(url) {
+  var container = document.getElementById('playerContainer');
+  var parseUrl = PARSE_APIS[0] + encodeURIComponent(url);
+  container.innerHTML = '<iframe src="' + parseUrl + '" style="width:100%;height:100%;border:none;" allowfullscreen allow="autoplay;encrypted-media"></iframe>';
+}
+
+function closePlayer() {
+  // 关闭前保存进度
+  stopProgressSaver();
+  saveCurrentProgress();
+
+  if (playerVideo) {
+    if (playerVideo.hls) { playerVideo.hls.destroy(); playerVideo.hls = null; }
+    playerVideo.pause();
+    playerVideo.remove();
+    playerVideo = null;
+  }
+  document.getElementById('playerPage').style.display = 'none';
+  document.querySelector('.bottom-nav').style.display = 'flex';
+  document.querySelector('.header').style.display = 'block';
+  document.body.style.overflow = '';
+  document.getElementById('playerContainer').innerHTML = '<div class="player-placeholder">🎬 正在加载播放器...</div>';
+  currentPlayData = null;
+}
+
+// 定时保存进度（每10秒）
+function startProgressSaver() {
+  stopProgressSaver();
+  historySaveTimer = setInterval(function() {
+    if (playerVideo && currentPlayData) {
+      saveCurrentProgress();
+    }
+  }, 10000);
+}
+
+function stopProgressSaver() {
+  if (historySaveTimer) {
+    clearInterval(historySaveTimer);
+    historySaveTimer = null;
+  }
+}
+
+// ============ PAGES ============
+function switchPage(page) {
+  currentPage = page;
+  var pages = document.querySelectorAll('.page');
+  for (var i = 0; i < pages.length; i++) pages[i].classList.remove('active');
+  var target = document.getElementById('page-' + page);
+  if (target) target.classList.add('active');
+
+  var navItems = document.querySelectorAll('.nav-item');
+  var navTexts = { watch: '观影', search: '搜索', favorites: '收藏', history: '历史', about: '关于' };
+  for (var j = 0; j < navItems.length; j++) {
+    navItems[j].classList.remove('active');
+    if (navItems[j].textContent.indexOf(navTexts[page]) >= 0) navItems[j].classList.add('active');
+  }
+
+  if (page === 'favorites') renderFavorites();
+  if (page === 'history') renderHistory();
+  if (page === 'search') document.getElementById('searchResults').innerHTML = '<div class="empty-state"><div class="icon">🔍</div><p>在上方搜索框输入片名搜索</p></div>';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+async function doSearch() {
+  var query = document.getElementById('searchInput').value.trim();
+  if (!query) return;
+
+  switchPage('search');
+  document.getElementById('searchQuery').textContent = query;
+  document.getElementById('searchResults').innerHTML = renderSkeletons(5);
+  document.getElementById('searchStatus').textContent = '';
+
+  try {
+    var result = await tryApiCall({ wd: query });
+    document.getElementById('searchResults').innerHTML = result.list.length > 0
+      ? result.list.map(renderResultCard).join('')
+      : '<div class="empty-state"><div class="icon">🔍</div><p>没有找到相关影片<br>试试其他关键词</p></div>';
+  } catch (e) {
+    document.getElementById('searchResults').innerHTML = '';
+    document.getElementById('searchStatus').textContent = '搜索失败: ' + (e.message || '未知错误');
+    document.getElementById('searchStatus').classList.add('error');
+  }
+}
+
+function renderFavorites() {
+  var list = document.getElementById('favList');
+  var empty = document.getElementById('favEmpty');
+  if (favorites.length === 0) {
+    list.innerHTML = '';
+    empty.style.display = 'block';
+  } else {
+    list.innerHTML = favorites.map(renderResultCard).join('');
+    empty.style.display = 'none';
+  }
+}
+
+// ============ INIT ============
+async function loadHotList() {
+  document.getElementById('hotList').innerHTML = renderSkeletons(4);
+  try {
+    var result = await tryApiCall({});
+    document.getElementById('hotList').innerHTML = result.list.length > 0
+      ? result.list.slice(0, 20).map(renderResultCard).join('')
+      : '<div class="status-bar">暂无数据，请检查网络</div>';
+  } catch (e) {
+    document.getElementById('hotList').innerHTML = '<div class="status-bar error">加载失败<br><small>' + (e.message || '未知错误') + '</small></div>';
+  }
+}
+
+function init() {
+  loadHotList();
+  renderFavorites();
+  // 云更新检查（延迟执行，不阻塞首页加载）
+  setTimeout(checkUpdate, 3000);
+}
+
+// ============ 云更新 ============
+async function checkUpdate() {
+  if (UPDATE_URL === 'UPDATE_URL_PLACEHOLDER') return; // 未配置更新地址，跳过
+
+  try {
+    // 从远程拉取版本号
+    var verUrl = UPDATE_URL.replace(/zhuiju\.html$/, 'version.json');
+    if (verUrl === UPDATE_URL) verUrl = UPDATE_URL.replace(/\/$/, '') + '/version.json';
+
+    var resp = await fetch(verUrl + '?t=' + Date.now(), { signal: AbortSignal.timeout(8000) });
+    if (!resp.ok) return;
+    var remote = await resp.json();
+
+    if (remote.version > APP_VERSION) {
+      showUpdateBanner(remote);
+    }
+  } catch (e) {
+    // 检查失败静默处理，不影响正常使用
+  }
+}
+
+function showUpdateBanner(remote) {
+  // 避免重复弹窗
+  if (document.getElementById('updateBanner')) return;
+
+  var banner = document.createElement('div');
+  banner.id = 'updateBanner';
+  banner.style.cssText = 'position:fixed;bottom:80px;left:12px;right:12px;z-index:500;background:linear-gradient(135deg,#7c5ce7,#e85d75);color:#fff;border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:10px;box-shadow:0 4px 20px rgba(124,92,231,0.4);animation:slideUp 0.3s ease;font-size:13px;';
+
+  banner.innerHTML =
+    '<div style="flex:1;min-width:0;">' +
+    '<div style="font-weight:700;margin-bottom:3px;">🎉 发现新版本 v' + remote.version + '</div>' +
+    '<div style="font-size:11px;opacity:0.85;">' + escapeHTML(remote.note || '') + ' · ' + escapeHTML(remote.updated || '') + '</div>' +
+    '</div>' +
+    '<button onclick="doUpdate()" style="flex-shrink:0;height:32px;padding:0 16px;border-radius:16px;border:none;background:#fff;color:#7c5ce7;font-size:12px;font-weight:700;cursor:pointer;">立即更新</button>' +
+    '<button onclick="this.parentElement.remove()" style="flex-shrink:0;width:24px;height:24px;border-radius:50%;border:none;background:rgba(255,255,255,0.2);color:#fff;font-size:12px;cursor:pointer;">✕</button>';
+
+  document.body.appendChild(banner);
+}
+
+async function doUpdate() {
+  var banner = document.getElementById('updateBanner');
+  if (banner) {
+    banner.innerHTML = '<div style="text-align:center;width:100%;padding:8px;">⏳ 正在更新...</div>';
+  }
+
+  try {
+    var resp = await fetch(UPDATE_URL + '?t=' + Date.now(), { signal: AbortSignal.timeout(15000) });
+    if (!resp.ok) throw new Error('下载失败');
+    var newHTML = await resp.text();
+
+    // 验证是有效的 HTML
+    if (newHTML.indexOf('<!DOCTYPE html>') < 0 && newHTML.indexOf('<html') < 0) {
+      throw new Error('文件格式异常');
+    }
+
+    // 直接替换整个页面
+    document.open();
+    document.write(newHTML);
+    document.close();
+  } catch (e) {
+    if (banner) {
+      banner.innerHTML = '<div style="text-align:center;width:100%;padding:8px;color:#ffcccb;">⚠️ 更新失败: ' + escapeHTML(e.message || '网络错误') + '<br><small>请检查网络后重试</small></div>';
+    }
+  }
+}
+
+// 动画
+var updateStyle = document.createElement('style');
+updateStyle.textContent = '@keyframes slideUp{from{transform:translateY(30px);opacity:0;}to{transform:translateY(0);opacity:1;}}';
+document.head.appendChild(updateStyle);
+
+init();
+
+// 注册 Service Worker（PWA）
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(function() {});
+}
+</script>
+</body>
+</html>
