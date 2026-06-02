@@ -436,7 +436,7 @@ pointer-events:none;
 <!-- Header -->
 <div class="header">
 <div class="header-top">
-<div class="logo">追剧<span class="logo-sub">v13</span></div>
+<div class="logo">追剧<span class="logo-sub">v14</span></div>
 <div class="stats-row">
 <span class="stat-badge"><span class="dot"></span><span id="updateCount">加载中</span></span>
 </div>
@@ -562,14 +562,22 @@ onkeydown="if(event.key==='Enter')doSearch()">
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
 <script>
 // ============ CONFIG ============
-const APP_VERSION = 13;
+const APP_VERSION = 14;
 const UPDATE_URL = 'https://zhangxinzhi111.github.io/zhuiju/';
-const API_BASE = 'https://api.apibdzy.com/api.php/provide/vod/';
+
+// Auto-detect local server: use relative /api/ path when served from local server,
+// fallback to CORS proxy when opened directly (file:// or GitHub Pages)
+const API_BASE = (location.hostname === 'localhost' || location.hostname.match(/^192\.|^10\.|^172\.|^127\./))
+  ? '/api/'  // local server proxy
+  : 'https://api.apibdzy.com/api.php/provide/vod/';
+
 const CORS_PROXIES = [
   'https://api.codetabs.com/v1/proxy?quest=',
   'https://api.allorigins.win/raw?url=',
   'https://corsproxy.io/?'
 ];
+
+const USE_LOCAL_API = API_BASE === '/api/';
 const PARSE_APIS = [
   'https://api.78sy.cn/?url=',
   'https://api.yueliangjx.com/?url=',
@@ -779,6 +787,18 @@ function escapeHTML(s) {
 
 // ============ API ============
 function buildApiUrl(ac, params) {
+  if (USE_LOCAL_API) {
+    // Local server mode: /api/list?ac=list&pg=1&wd=xxx
+    let url = API_BASE + ac;
+    let qs = [];
+    if (params.wd) qs.push('wd=' + encodeURIComponent(params.wd));
+    if (params.ids) qs.push('ids=' + encodeURIComponent(params.ids));
+    if (params.t) qs.push('t=' + params.t);
+    if (params.pg) qs.push('pg=' + params.pg);
+    if (qs.length) url += '?' + qs.join('&');
+    return url;
+  }
+  // CORS proxy mode
   let url = API_BASE + '?ac=' + ac;
   if (params.wd) url += '&wd=' + encodeURIComponent(params.wd);
   if (params.ids) url += '&ids=' + encodeURIComponent(params.ids);
@@ -791,24 +811,30 @@ async function apiCall(params) {
   const ac = params.ac || 'list';
   const directUrl = buildApiUrl(ac, params);
   
-  // Try codetabs first (most reliable), then others as fallback
-  // Avoid Promise.any for compatibility with older WebViews
-  const proxies = [
-    'https://api.codetabs.com/v1/proxy?quest=',
-    'https://api.allorigins.win/raw?url=',
-    'https://corsproxy.io/?'
-  ];
-  
-  for (const proxy of proxies) {
-    try {
-      const proxyUrl = proxy + encodeURIComponent(directUrl);
-      return await fetchAndParse(proxyUrl, ac);
-    } catch(e) { continue; }
+  // Local server mode: direct request, no CORS proxy needed
+  if (USE_LOCAL_API) {
+    return await fetchAndParse(directUrl, ac);
   }
   
-  // Last resort: try direct (will fail due to CORS in browser, but worth a shot)
-  try { return await fetchAndParse(directUrl, ac); }
-  catch(e) { throw new Error('所有线路均不可用，请检查网络'); }
+  // CORS proxy mode: only codetabs is reliable
+  // allorigins (timeout), corsproxy.io (403) are not usable
+  // Try codetabs up to 2 times with short timeout
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const proxyUrl = 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(directUrl);
+      return await fetchAndParse(proxyUrl, ac);
+    } catch(e) {
+      if (attempt === 0) {
+        // First attempt failed, wait 1s and retry
+        await new Promise(r => setTimeout(r, 1000));
+        continue;
+      }
+      break;
+    }
+  }
+  
+  // Last resort: try direct (will fail due to CORS, but show helpful error)
+  throw new Error('网络代理不可用，请使用本地服务器（双击"启动服务器.bat"）');
 }
 
 async function fetchAndParse(url, ac) {
