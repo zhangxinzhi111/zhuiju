@@ -177,7 +177,6 @@ display:flex;align-items:center;justify-content:center;
 }
 .movie-card .card-poster img{
 width:100%;height:100%;object-fit:cover;
-/* CRITICAL: start with opacity:1 so poster shows immediately */
 opacity:1;
 }
 .movie-card .card-poster img.hidden{opacity:0;position:absolute;}
@@ -306,9 +305,23 @@ background:rgba(255,255,255,0.15);color:#fff;font-size:14px;
 cursor:pointer;display:flex;align-items:center;justify-content:center;
 }
 .player-title{flex:1;font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.player-container{flex:1;background:#000;display:flex;align-items:center;justify-content:center;min-height:0;}
+.player-container{flex:1;background:#000;display:flex;align-items:center;justify-content:center;min-height:0;position:relative;}
 .player-container video{width:100%;height:100%;max-height:100%;object-fit:contain;}
+.player-container iframe{width:100%;height:100%;border:none;}
 .player-placeholder{text-align:center;color:var(--text2);padding:20px;}
+
+/* Player mode toggle */
+.player-mode-toggle{
+position:absolute;top:8px;right:8px;z-index:20;
+display:flex;gap:4px;
+}
+.player-mode-btn{
+height:24px;padding:0 8px;border-radius:12px;border:1px solid rgba(255,255,255,0.25);
+background:rgba(0,0,0,0.5);color:rgba(255,255,255,0.8);font-size:10px;
+cursor:pointer;backdrop-filter:blur(4px);transition:all 0.2s;
+}
+.player-mode-btn.active{background:rgba(108,92,231,0.6);border-color:var(--purple);color:#fff;}
+
 .source-select{
 padding:6px 10px;background:var(--bg2);display:flex;gap:4px;
 overflow-x:auto;scrollbar-width:none;border-top:1px solid var(--border);flex-shrink:0;
@@ -330,7 +343,7 @@ cursor:pointer;font-size:11px;color:var(--text2);user-select:none;
 .episode-toggle .arrow{transition:transform 0.3s;font-size:10px;}
 .episode-toggle .arrow.open{transform:rotate(180deg);}
 
-/* Episode bar - now collapsible but STAYS when shown */
+/* Episode bar */
 .episode-bar{
 padding:8px 10px;background:var(--bg2);overflow-y:auto;max-height:120px;
 display:flex;flex-wrap:wrap;gap:4px;align-content:flex-start;
@@ -421,7 +434,7 @@ pointer-events:none;
 <!-- Header -->
 <div class="header">
 <div class="header-top">
-<div class="logo">追剧<span class="logo-sub">v9</span></div>
+<div class="logo">追剧<span class="logo-sub">v10</span></div>
 <div class="stats-row">
 <span class="stat-badge"><span class="dot"></span><span id="updateCount">加载中</span></span>
 </div>
@@ -508,9 +521,12 @@ onkeydown="if(event.key==='Enter')doSearch()">
 </div>
 <div class="player-container" id="playerContainer">
 <div class="player-placeholder">🎬 正在加载播放器...</div>
+<div class="player-mode-toggle" id="playerModeToggle" style="display:none">
+<button class="player-mode-btn active" id="btnModeDirect" onclick="switchPlayerMode('direct')">直连</button>
+<button class="player-mode-btn" id="btnModeProxy" onclick="switchPlayerMode('proxy')">解析</button>
+</div>
 </div>
 <div class="source-select" id="sourceSelect"></div>
-<!-- Episode toggle: user controls show/hide -->
 <div class="episode-toggle" id="episodeToggle" onclick="toggleEpisodes()">
 <span>📺 选集</span><span class="arrow" id="episodeArrow">▼</span>
 </div>
@@ -540,11 +556,17 @@ onkeydown="if(event.key==='Enter')doSearch()">
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
 <script>
 // ============ CONFIG ============
-const APP_VERSION = 9;
+const APP_VERSION = 10;
 const UPDATE_URL = 'https://zhangxinzhi111.github.io/zhuiju/';
 const API_BASE = 'https://api.apibdzy.com/api.php/provide/vod/';
 const CORS_PROXIES = ['https://api.codetabs.com/v1/proxy?quest='];
-const PARSE_APIS = ['https://vip.52jiexi.top/?url='];
+// Multiple parse APIs for fallback
+const PARSE_APIS = [
+  'https://vip.52jiexi.top/?url=',
+  'https://jx.m3u8.tv/jiexi/?url=',
+  'https://jx.playerjy.com/?url=',
+  'https://jx.aidouer.net/?url='
+];
 const CACHE_KEY = 'zhuiju_cache';
 const CACHE_TTL = 24 * 60 * 60 * 1000;
 
@@ -560,6 +582,7 @@ let allMovies = [];
 let favorites = JSON.parse(localStorage.getItem('zhuiju_favs') || '[]');
 let history = JSON.parse(localStorage.getItem('zhuiju_history') || '[]');
 let playerVideo = null;
+let playerHls = null;
 let currentSourceIdx = 0;
 let currentEpIdx = 0;
 let historySaveTimer = null;
@@ -569,7 +592,9 @@ let bannerTimer = null;
 let bannerIdx = 0;
 let bannerItems = [];
 let tmdbCache = {};
-let episodeVisible = true; // user controls episode bar visibility
+let episodeVisible = true;
+let playerMode = 'direct'; // 'direct' or 'proxy'
+let currentPlayUrl = '';
 
 // ============ TMDB API ============
 function tmdbEnabled() {
@@ -624,14 +649,12 @@ function posterColor(name) {
   return POSTER_COLORS[Math.abs(h) % POSTER_COLORS.length];
 }
 
-// ============ POSTER URL (SIMPLIFIED: TMDB > API vod_pic > null) ============
+// ============ POSTER URL ============
 function getPosterURL(item) {
-  // Priority 1: TMDB poster (already proxied)
   if (tmdbEnabled()) {
     const tmdb = tmdbCache[item.vod_name];
     if (tmdb && tmdb.poster) return tmdb.poster;
   }
-  // Priority 2: API's own vod_pic through proxy
   if (item.vod_pic && item.vod_pic.startsWith('http')) {
     return CORS_PROXIES[0] + encodeURIComponent(item.vod_pic);
   }
@@ -646,7 +669,7 @@ function getRating(item) {
   return null;
 }
 
-// ============ POSTER HTML (img always visible, fallback hidden until error) ============
+// ============ POSTER HTML ============
 function posterHTML(item) {
   const c = posterColor(item.vod_name);
   const pic = getPosterURL(item);
@@ -656,7 +679,6 @@ function posterHTML(item) {
     ratingHTML = '<div class="tmdb-rating">⭐ '+rating+'</div>';
   }
   if (pic) {
-    // img starts visible (opacity:1), fallback hidden. If img errors, hide it and show fallback.
     return ratingHTML +
       '<img src="'+pic+'" loading="lazy" onerror="this.classList.add(\'hidden\');this.nextElementSibling.style.display=\'flex\'">' +
       '<div class="poster-fallback" style="--c1:'+c[0]+';--c2:'+c[1]+';display:none"><div class="pf-pattern"></div><div class="pf-text">'+(item.vod_name||'?')[0]+'</div>';
@@ -819,7 +841,6 @@ function renderBanner(items) {
 
   dots.innerHTML = bannerItems.map((_,i) => '<div class="banner-dot'+(i===0?' active':'')+'" onclick="scrollBanner('+i+')"></div>').join('');
 
-  // Autoplay every 3.5s
   bannerTimer = setInterval(() => {
     if (bannerItems.length === 0) return;
     bannerIdx = (bannerIdx + 1) % bannerItems.length;
@@ -876,17 +897,14 @@ function setSort(mode) { sortMode = mode; renderCategoryBar(); renderMovieGrid()
 
 function filterCategory(cat) { currentCategory = cat; renderCategoryBar(); renderMovieGrid(); }
 
-// ============ CATEGORY MATCHING (FIXED: broader matching) ============
+// ============ CATEGORY MATCHING ============
 function matchCategory(typeName, cat) {
   const t = (typeName || '').toLowerCase();
   if (cat === '电影') {
-    // Match: 电影, 动作, 喜剧, 爱情, 科幻, 恐怖, 悬疑, 战争, 剧情, 动画片, etc.
-    // Basically anything that is a movie genre OR contains 电影/片
     if (t.includes('电影') || t.includes('movie')) return true;
-    // Common Chinese movie genre keywords
     const movieKeywords = ['动作', '喜剧', '爱情', '科幻', '恐怖', '悬疑', '惊悚', '战争',
       '剧情', '犯罪', '冒险', '奇幻', '纪录', '历史', '西部', '歌舞', '音乐',
-      '动画片', '文艺', '伦理', '情色', '短片', '微电影'];
+      '动画片', '文艺', '伦理', '短片', '微电影'];
     return movieKeywords.some(kw => t.includes(kw));
   }
   if (cat === '电视剧') {
@@ -1183,15 +1201,230 @@ function showEpisodes() {
   document.getElementById('episodeArrow').classList.add('open');
 }
 
-// ============ PLAYER ============
+// ============ PLAYER MODE SWITCH ============
+function switchPlayerMode(mode) {
+  playerMode = mode;
+  document.getElementById('btnModeDirect').classList.toggle('active', mode === 'direct');
+  document.getElementById('btnModeProxy').classList.toggle('active', mode === 'proxy');
+  // Replay current URL with new mode
+  if (currentPlayUrl) {
+    const resumeTime = playerVideo ? (playerVideo.currentTime || 0) : 0;
+    playWithMode(currentPlayUrl, resumeTime);
+  }
+}
+
+function playWithMode(url, resumeTime) {
+  currentPlayUrl = url;
+  const container = document.getElementById('playerContainer');
+  // Show mode toggle
+  document.getElementById('playerModeToggle').style.display = 'flex';
+
+  if (playerMode === 'proxy') {
+    // Use parse API iframe
+    playViaProxy(url);
+    return;
+  }
+
+  // Direct mode: try HLS or native video
+  playDirect(url, resumeTime);
+}
+
+function playDirect(url, resumeTime) {
+  const container = document.getElementById('playerContainer');
+  // Clean up
+  cleanupPlayer();
+
+  // Check if URL is a stream (m3u8, mpd, ts, etc.) or direct media
+  const isStream = /\.m3u8([?#]|$)|\.mpd([?#]|$)|\/m3u8\/|\/hls\/|\.ts([?#]|$)/i.test(url);
+  const isMedia = /\.mp4([?#]|$)|\.flv([?#]|$)|\.mkv([?#]|$)|\.avi([?#]|$)|\.webm([?#]|$)/i.test(url);
+  const isHttp = url.startsWith('http');
+
+  if (isStream) {
+    // Try HLS
+    if (typeof Hls !== 'undefined' && Hls.isSupported()) {
+      playHLS(url, resumeTime);
+    } else if (typeof Hls !== 'undefined') {
+      // HLS.js loaded but not supported (e.g., Safari has native support)
+      playNativeHLS(url, resumeTime);
+    } else {
+      // HLS.js not loaded, try native
+      playNativeHLS(url, resumeTime);
+    }
+  } else if (isMedia && isHttp) {
+    playNative(url, resumeTime);
+  } else if (isHttp) {
+    // Unknown format, try HLS first then fallback to native
+    playHLS(url, resumeTime);
+  } else {
+    container.innerHTML = '<div class="player-placeholder">⚠️ 不支持的播放地址格式<br><small>尝试切换"解析"模式</small></div>';
+  }
+}
+
+function playHLS(url, resumeTime) {
+  const container = document.getElementById('playerContainer');
+  const video = document.createElement('video');
+  video.controls = true;
+  video.autoplay = true;
+  video.playsInline = true;
+  video.setAttribute('webkit-playsinline', 'true');
+  video.setAttribute('x5-video-player-type', 'h5');
+  video.setAttribute('x5-video-player-fullscreen', 'true');
+  video.setAttribute('x5-video-orientation', 'landscape');
+  video.style.cssText = 'width:100%;height:100%;max-height:100%;object-fit:contain;';
+  container.appendChild(video);
+
+  try {
+    const hls = new Hls({
+      enableWorker: false,
+      lowLatencyMode: false,
+      startPosition: resumeTime || 0,
+      maxBufferLength: 30,
+      maxMaxBufferLength: 60,
+      manifestLoadingTimeOut: 15000,
+      manifestLoadingMaxRetry: 2,
+      levelLoadingTimeOut: 15000,
+      fragLoadingTimeOut: 20000
+    });
+
+    hls.loadSource(url);
+    hls.attachMedia(video);
+
+    hls.on(Hls.Events.MANIFEST_PARSED, () => {
+      if (resumeTime > 0) {
+        video.currentTime = resumeTime;
+      }
+      video.play().catch(e => {
+        console.warn('HLS autoplay failed:', e.message);
+        // Show play button - user needs to tap
+      });
+    });
+
+    hls.on(Hls.Events.ERROR, (event, data) => {
+      if (data.fatal) {
+        switch (data.type) {
+          case Hls.ErrorTypes.NETWORK_ERROR:
+            // Retry once
+            hls.startLoad();
+            break;
+          case Hls.ErrorTypes.MEDIA_ERROR:
+            hls.recoverMediaError();
+            break;
+          default:
+            // Fallback to proxy mode
+            hls.destroy();
+            playViaProxy(url);
+            break;
+        }
+      }
+    });
+
+    playerVideo = video;
+    playerHls = hls;
+    video.hls = hls;
+  } catch(e) {
+    // HLS failed, fallback to proxy
+    video.remove();
+    playViaProxy(url);
+  }
+}
+
+function playNativeHLS(url, resumeTime) {
+  const container = document.getElementById('playerContainer');
+  const video = document.createElement('video');
+  video.controls = true;
+  video.autoplay = true;
+  video.playsInline = true;
+  video.src = url;
+  if (resumeTime > 0) video.currentTime = resumeTime;
+  video.style.cssText = 'width:100%;height:100%;max-height:100%;object-fit:contain;';
+  container.appendChild(video);
+  playerVideo = video;
+  video.play().catch(() => {
+    // Native HLS not supported, fallback to proxy
+    video.remove();
+    playViaProxy(url);
+  });
+}
+
+function playNative(url, resumeTime) {
+  const container = document.getElementById('playerContainer');
+  const video = document.createElement('video');
+  video.controls = true;
+  video.autoplay = true;
+  video.playsInline = true;
+  video.src = url;
+  if (resumeTime > 0) video.currentTime = resumeTime;
+  video.style.cssText = 'width:100%;height:100%;max-height:100%;object-fit:contain;';
+  container.appendChild(video);
+  playerVideo = video;
+
+  video.addEventListener('error', () => {
+    video.remove();
+    playerVideo = null;
+    // Fallback to proxy
+    playViaProxy(url);
+  });
+
+  video.play().catch(() => {
+    // Maybe autoplay blocked, video still works with controls
+  });
+}
+
+function playViaProxy(url) {
+  const container = document.getElementById('playerContainer');
+  cleanupPlayer();
+
+  // Try parse APIs in sequence
+  const encodedUrl = encodeURIComponent(url);
+  const iframe = document.createElement('iframe');
+  iframe.setAttribute('allowfullscreen', 'true');
+  iframe.setAttribute('allow', 'autoplay; encrypted-media; picture-in-picture');
+  iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-presentation allow-popups');
+  iframe.style.cssText = 'width:100%;height:100%;border:none;';
+  iframe.src = PARSE_APIS[0] + encodedUrl;
+  container.appendChild(iframe);
+
+  // Store for retry
+  iframe.dataset.parseIdx = '0';
+  iframe.dataset.originalUrl = url;
+
+  // If first parse API fails, try next after 5 seconds
+  const retryTimer = setTimeout(() => {
+    const idx = parseInt(iframe.dataset.parseIdx || '0');
+    if (idx + 1 < PARSE_APIS.length) {
+      iframe.dataset.parseIdx = String(idx + 1);
+      iframe.src = PARSE_APIS[idx + 1] + encodeURIComponent(iframe.dataset.originalUrl);
+    }
+  }, 8000);
+
+  iframe.addEventListener('load', () => {
+    clearTimeout(retryTimer);
+  });
+}
+
+function cleanupPlayer() {
+  if (playerHls) {
+    try { playerHls.destroy(); } catch(e) {}
+    playerHls = null;
+  }
+  if (playerVideo) {
+    try { playerVideo.pause(); playerVideo.remove(); } catch(e) {}
+    playerVideo = null;
+  }
+  document.getElementById('playerContainer').innerHTML = '';
+}
+
+// ============ PLAYER MAIN ============
 function showPlayer() {
   const page = document.getElementById('playerPage');
   page.classList.add('show');
   document.querySelector('.bottom-nav').style.display = 'none';
   document.querySelector('.header').style.display = 'none';
   document.body.style.overflow = 'hidden';
-  // Ensure episodes are visible by default
   showEpisodes();
+  // Reset mode to direct on new play
+  playerMode = 'direct';
+  document.getElementById('playerModeToggle').style.display = 'none';
 }
 
 async function playItem(vodId, vodName) {
@@ -1227,7 +1460,6 @@ function switchSource(idx) {
   document.querySelectorAll('.source-btn').forEach((b,i) => b.classList.toggle('active', i===idx));
   renderEpisodes(allSources[idx], 0);
   if (allSources[idx].eps.length) playEpisode(allSources[idx].eps[0].url);
-  // Keep episodes visible on source switch
   showEpisodes();
 }
 
@@ -1241,7 +1473,6 @@ function renderEpisodes(source, activeIdx) {
     if (watchedEps.indexOf(i) >= 0) cls += ' watched';
     return '<button class="'+cls+'" onclick="playEpisode(\''+ep.url.replace(/'/g,"\\'")+'\',this)">'+escapeHTML(ep.label)+'</button>';
   }).join('');
-  // Ensure episodes are visible
   showEpisodes();
   setTimeout(() => { const btn = bar.querySelector('.episode-btn.active'); if(btn) btn.scrollIntoView({behavior:'smooth',block:'nearest'}); }, 100);
 }
@@ -1250,61 +1481,32 @@ function playEpisode(url, btnEl, resumeTime) {
   if (btnEl) {
     document.querySelectorAll('.episode-btn').forEach((b,i) => { b.classList.remove('active'); if(b===btnEl) currentEpIdx=i; });
     btnEl.classList.add('active');
-    // Keep episodes visible after selecting one
     showEpisodes();
   }
-  const container = document.getElementById('playerContainer');
-  if (playerVideo) { if(playerVideo.hls){playerVideo.hls.destroy();playerVideo.hls=null;} playerVideo.pause(); playerVideo.remove(); playerVideo=null; }
-  container.innerHTML = '';
+
+  // Reset player mode to direct for new episode
+  playerMode = 'direct';
+  document.getElementById('btnModeDirect').classList.add('active');
+  document.getElementById('btnModeProxy').classList.remove('active');
+  document.getElementById('playerModeToggle').style.display = 'flex';
+
+  cleanupPlayer();
   resumeTime = resumeTime || 0;
-
-  if (url.indexOf('.m3u8')>=0 || url.indexOf('/m3u8/')>=0) {
-    if (typeof Hls !== 'undefined' && Hls.isSupported()) {
-      const video = document.createElement('video');
-      video.controls=true; video.autoplay=true; video.playsInline=true;
-      video.setAttribute('x5-video-player-type','h5');
-      video.setAttribute('x5-video-player-fullscreen','true');
-      video.style.cssText='width:100%;height:100%;max-height:100%;object-fit:contain;';
-      container.appendChild(video);
-      const hls = new Hls({enableWorker:false, startPosition:resumeTime});
-      hls.loadSource(url); hls.attachMedia(video);
-      hls.on(Hls.Events.MANIFEST_PARSED, () => { if(resumeTime>0) video.currentTime=resumeTime; video.play().catch(()=>{}); });
-      hls.on(Hls.Events.ERROR, (e,d) => { if(d.fatal) tryParseFallback(url); });
-      playerVideo = video; video.hls = hls;
-    } else {
-      const video = document.createElement('video');
-      video.controls=true; video.autoplay=true; video.playsInline=true;
-      video.src=url; if(resumeTime>0) video.currentTime=resumeTime;
-      video.style.cssText='width:100%;height:100%;max-height:100%;object-fit:contain;';
-      container.appendChild(video); playerVideo=video;
-      video.play().catch(()=>tryParseFallback(url));
-    }
-  } else if (url.indexOf('http')===0) {
-    const video = document.createElement('video');
-    video.controls=true; video.autoplay=true; video.playsInline=true;
-    video.src=url; if(resumeTime>0) video.currentTime=resumeTime;
-    video.style.cssText='width:100%;height:100%;max-height:100%;object-fit:contain;';
-    container.appendChild(video); playerVideo=video;
-    video.play().catch(()=>tryParseFallback(url));
-  } else {
-    container.innerHTML='<div class="player-placeholder">⚠️ 不支持的播放地址</div>';
-  }
-}
-
-function tryParseFallback(url) {
-  document.getElementById('playerContainer').innerHTML = '<iframe src="'+PARSE_APIS[0]+encodeURIComponent(url)+'" style="width:100%;height:100%;border:none" allowfullscreen allow="autoplay;encrypted-media"></iframe>';
+  playDirect(url, resumeTime);
 }
 
 function closePlayer() {
   stopProgressSaver();
   saveCurrentProgress();
-  if (playerVideo) { if(playerVideo.hls){playerVideo.hls.destroy();playerVideo.hls=null;} playerVideo.pause(); playerVideo.remove(); playerVideo=null; }
+  cleanupPlayer();
   document.getElementById('playerPage').classList.remove('show');
   document.querySelector('.bottom-nav').style.display = 'flex';
   document.querySelector('.header').style.display = 'block';
   document.body.style.overflow = '';
   document.getElementById('playerContainer').innerHTML = '<div class="player-placeholder">🎬 正在加载播放器...</div>';
+  document.getElementById('playerModeToggle').style.display = 'none';
   currentPlayData = null;
+  currentPlayUrl = '';
 }
 
 function startProgressSaver() { stopProgressSaver(); historySaveTimer = setInterval(() => { if(playerVideo&&currentPlayData) saveCurrentProgress(); }, 10000); }
