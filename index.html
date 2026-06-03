@@ -433,10 +433,22 @@ pointer-events:none;
 </head>
 <body>
 
+<!-- INLINE LOADING: visible even if JS crashes -->
+<div id="loadingIndicator" style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9999;color:rgba(255,255,255,0.5);font-size:14px;font-family:-apple-system,sans-serif;text-align:center">
+  <div style="font-size:32px;margin-bottom:8px">馃幀</div>
+  <div>鍔犺浇涓?..</div>
+</div>
+<noscript>
+<div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9999;color:#fff;font-size:14px;text-align:center;background:rgba(0,0,0,0.7);padding:20px;border-radius:12px">
+  <div style="font-size:32px;margin-bottom:8px">鈿狅笍</div>
+  <div>璇峰惎鐢?JavaScript 浠ヤ娇鐢ㄨ拷鍓PP</div>
+</div>
+</noscript>
+
 <!-- Header -->
 <div class="header">
 <div class="header-top">
-<div class="logo">杩藉墽<span class="logo-sub">v22</span></div>
+<div class="logo">杩藉墽<span class="logo-sub">v23</span></div>
 <div class="stats-row">
 <span class="stat-badge"><span class="dot"></span><span id="updateCount">鍔犺浇涓?/span></span>
 </div>
@@ -562,7 +574,7 @@ onkeydown="if(event.key==='Enter')doSearch()">
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
 <script>
 // ============ CONFIG ============
-const APP_VERSION = 22;
+const APP_VERSION = 23;
 const UPDATE_URL = 'https://zhangxinzhi111.github.io/zhuiju/';
 
 // Auto-detect local server: use relative /api/ path when served from local server,
@@ -1749,6 +1761,10 @@ function updateStats() {
 async function init() {
   document.getElementById('movieGrid').innerHTML = renderSkeletons(8);
 
+  // Hide the inline loading indicator now that JS has started
+  var li = document.getElementById('loadingIndicator');
+  if (li) { li.style.opacity = '0'; li.style.transition = 'opacity 0.3s'; setTimeout(function(){ if(li) li.remove(); }, 400); }
+
   const cache = getCache();
   if (cache && cache.data.length > 0) {
     allMovies = cache.data;
@@ -1818,7 +1834,21 @@ const updateCSS = document.createElement('style');
 updateCSS.textContent = '@keyframes slideUp{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}';
 document.head.appendChild(updateCSS);
 
-init();
+// Global error handler - ensure page never appears completely blank
+window.onerror = function(msg, url, line) {
+  var li = document.getElementById('loadingIndicator');
+  if (li) {
+    li.innerHTML = '<div style="font-size:32px;margin-bottom:8px">鈿狅笍</div><div>椤甸潰鍔犺浇寮傚父</div><div style="font-size:10px;margin-top:6px;color:rgba(255,255,255,0.3);max-width:260px;word-break:break-all">'+String(msg).substring(0,80)+'</div>';
+  }
+  console.error('FATAL:', msg, 'line', line);
+};
+
+init().catch(function(e) {
+  var li = document.getElementById('loadingIndicator');
+  if (li) {
+    li.innerHTML = '<div style="font-size:32px;margin-bottom:8px">鈿狅笍</div><div>鍒濆鍖栧け璐?/div><div style="font-size:10px;margin-top:6px;color:rgba(255,255,255,0.3);max-width:260px;word-break:break-all">'+String(e.message||e).substring(0,80)+'</div><button onclick="location.reload(true)" style="margin-top:12px;padding:8px 20px;border-radius:20px;border:none;background:#6c5ce7;color:#fff;font-size:12px;cursor:pointer">馃攧 鍒锋柊閲嶈瘯</button>';
+  }
+});
 </script>
 </body>
 </html>
