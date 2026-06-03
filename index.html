@@ -436,7 +436,7 @@ pointer-events:none;
 <!-- Header -->
 <div class="header">
 <div class="header-top">
-<div class="logo">追剧<span class="logo-sub">v19</span></div>
+<div class="logo">追剧<span class="logo-sub">v20</span></div>
 <div class="stats-row">
 <span class="stat-badge"><span class="dot"></span><span id="updateCount">加载中</span></span>
 </div>
@@ -562,7 +562,7 @@ onkeydown="if(event.key==='Enter')doSearch()">
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
 <script>
 // ============ CONFIG ============
-const APP_VERSION = 19;
+const APP_VERSION = 20;
 const UPDATE_URL = 'https://zhangxinzhi111.github.io/zhuiju/';
 
 // Auto-detect local server: use relative /api/ path when served from local server,
@@ -579,8 +579,7 @@ const API_SOURCES = [
 ];
 
 const CORS_PROXIES = [
-  'https://api.codetabs.com/v1/proxy?quest=',
-  'https://api.allorigins.win/raw?url=',
+  'https://api.codetabs.com/v1/proxy/?quest=',
 ];
 
 const USE_LOCAL_API = API_BASE === '/api/';
@@ -606,7 +605,7 @@ const TMDB_POSTER_SIZE = 'w342';
 // Image CDN proxies for TMDB images
 const IMAGE_PROXIES = [
   'https://image.tmdb.org',
-  'https://api.codetabs.com/v1/proxy?quest=',
+  'https://api.codetabs.com/v1/proxy/?quest=',
 ];
 
 let currentPage = 'watch';
@@ -830,24 +829,16 @@ async function apiCall(params) {
     return await fetchAndParse(buildApiUrl(ac, params), ac);
   }
   
-  // Sequential fallback: try codetabs first, then backup
+  // Use codetabs CORS proxy (with trailing slash - REQUIRED to avoid 301 redirect hang on mobile)
   var apiUrl = buildApiUrlFromBase(API_SOURCES[0], ac, params);
   var encodedApi = encodeURIComponent(apiUrl);
-  var proxyUrls = [
-    'https://api.codetabs.com/v1/proxy?quest=' + encodedApi,
-    'https://api.codetabs.com/v1/proxy/?quest=' + encodedApi,
-  ];
+  var proxyUrl = 'https://api.codetabs.com/v1/proxy/?quest=' + encodedApi;
   
-  // Try each proxy in order — simpler and more reliable than parallel race on mobile
-  for (var i = 0; i < proxyUrls.length; i++) {
-    try {
-      return await fetchAndParse(proxyUrls[i], ac);
-    } catch(e) {
-      if (i < proxyUrls.length - 1) continue;
-    }
+  try {
+    return await fetchAndParse(proxyUrl, ac);
+  } catch(e) {
+    throw new Error('网络请求失败，请下拉刷新重试');
   }
-  
-  throw new Error('网络请求失败，请下拉刷新重试');
 }
 
 function buildApiUrlFromBase(base, ac, params) {
