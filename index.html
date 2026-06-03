@@ -436,7 +436,7 @@ pointer-events:none;
 <!-- Header -->
 <div class="header">
 <div class="header-top">
-<div class="logo">追剧<span class="logo-sub">v17</span></div>
+<div class="logo">追剧<span class="logo-sub">v18</span></div>
 <div class="stats-row">
 <span class="stat-badge"><span class="dot"></span><span id="updateCount">加载中</span></span>
 </div>
@@ -562,7 +562,7 @@ onkeydown="if(event.key==='Enter')doSearch()">
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
 <script>
 // ============ CONFIG ============
-const APP_VERSION = 17;
+const APP_VERSION = 18;
 const UPDATE_URL = 'https://zhangxinzhi111.github.io/zhuiju/';
 
 // Auto-detect local server: use relative /api/ path when served from local server,
@@ -822,46 +822,35 @@ async function apiCall(params) {
   
   // Local server mode: direct request, no CORS proxy needed
   if (USE_LOCAL_API) {
-    const directUrl = buildApiUrl(ac, params);
-    return await fetchAndParse(directUrl, ac);
+    return await fetchAndParse(buildApiUrl(ac, params), ac);
   }
   
-  // Build multiple API+proxy combinations
+  // Simple parallel race: fire all proxy requests at once, first to succeed wins
+  // This is the fastest approach - no waiting for one to fail before trying another
   const proxies = [
     'https://api.codetabs.com/v1/proxy?quest=',
-    'https://api.allorigins.win/raw?url='
+    'https://corsproxy.io/?',
   ];
   
-  // Primary API with both proxies
-  const primaryUrl = buildApiUrlFromBase(API_SOURCES[0], ac, params);
-  const url1 = proxies[0] + encodeURIComponent(primaryUrl);
-  const url2 = proxies[1] + encodeURIComponent(primaryUrl);
+  const apiUrl = buildApiUrlFromBase(API_SOURCES[0], ac, params);
   
-  // Race: whichever proxy succeeds first wins
-  // Use a custom race that ignores rejections until all fail
+  // Race pattern: all browsers, no Promise.any dependency
   return new Promise((resolve, reject) => {
-    let done = false;
-    let failCount = 0;
-    const total = 2;
+    let resolved = false;
+    let pending = proxies.length;
     
-    const tryUrl = (url) => {
-      fetchAndParse(url, ac).then(result => {
-        if (!done) { done = true; resolve(result); }
-      }).catch(err => {
-        failCount++;
-        if (!done && failCount >= total) {
-          // Both proxies failed, try backup API with codetabs
-          const backupUrl = buildApiUrlFromBase(API_SOURCES[1] || API_SOURCES[0], ac, params);
-          fetchAndParse(proxies[0] + encodeURIComponent(backupUrl), ac)
-            .then(r => { if (!done) { done = true; resolve(r); }})
-            .catch(() => reject(new Error('网络请求失败，请下拉刷新重试')));
-        }
-      });
-    };
-    
-    tryUrl(url1);
-    // Stagger the second request by 300ms to avoid hitting rate limits
-    setTimeout(() => { if (!done) tryUrl(url2); }, 300);
+    for (const proxy of proxies) {
+      fetchAndParse(proxy + encodeURIComponent(apiUrl), ac)
+        .then(result => {
+          if (!resolved) { resolved = true; resolve(result); }
+        })
+        .catch(() => {
+          pending--;
+          if (!resolved && pending <= 0) {
+            reject(new Error('网络请求失败，请下拉刷新重试'));
+          }
+        });
+    }
   });
 }
 
@@ -875,7 +864,7 @@ function buildApiUrlFromBase(base, ac, params) {
 }
 
 async function fetchAndParse(url, ac) {
-  const res = await fetch(url, { signal: AbortSignal.timeout(12000) });
+  const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
   if (!res.ok) throw new Error('HTTP '+res.status);
   const text = await res.text();
   let data;
@@ -1531,13 +1520,13 @@ async function playItem(vodId, vodName) {
   document.getElementById('playerTitle').textContent = vodName;
   showPlayer();
   
-  // Set a safety timeout - if detail fetch takes >20s, show error with retry button
+  // Safety timeout: if detail fetch takes >15s, show error with retry button
   const safetyTimer = setTimeout(() => {
     if (!currentPlayData) {
       document.getElementById('playerContainer').innerHTML = 
         '<div class="player-placeholder">⚠️ 获取超时<br><small>网络较慢，请重试</small><br><button onclick="playItem('+vodId+',\''+vodName.replace(/'/g,"\\'")+'\')" style="margin-top:12px;padding:8px 20px;border-radius:20px;border:none;background:var(--purple);color:#fff;font-size:12px;cursor:pointer;">🔄 重试</button></div>';
     }
-  }, 20000);
+  }, 15000);
 
   try {
     const detail = await fetchDetail(vodId);
