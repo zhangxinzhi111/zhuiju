@@ -1,1 +1,1 @@
-{"version":16,"updated":"2026-06-03","note":"修复播放超时，并行请求加速"}
+{"version":17,"updated":"2026-06-03","note":"修复API并行请求逻辑Bug，新增备用API源"}
