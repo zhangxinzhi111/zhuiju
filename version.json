@@ -1,1 +1,1 @@
-{"version":18,"updated":"2026-06-03","note":"简化apiCall为干净并行race，修复Promise挂起Bug"}
+{"version":21,"note":"重写网络层-Promise.race替代AbortController-多重代理容灾-调试日志","updated":"2026-06-03"}
