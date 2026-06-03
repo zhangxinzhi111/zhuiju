@@ -436,7 +436,7 @@ pointer-events:none;
 <!-- Header -->
 <div class="header">
 <div class="header-top">
-<div class="logo">追剧<span class="logo-sub">v18</span></div>
+<div class="logo">追剧<span class="logo-sub">v19</span></div>
 <div class="stats-row">
 <span class="stat-badge"><span class="dot"></span><span id="updateCount">加载中</span></span>
 </div>
@@ -562,7 +562,7 @@ onkeydown="if(event.key==='Enter')doSearch()">
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
 <script>
 // ============ CONFIG ============
-const APP_VERSION = 18;
+const APP_VERSION = 19;
 const UPDATE_URL = 'https://zhangxinzhi111.github.io/zhuiju/';
 
 // Auto-detect local server: use relative /api/ path when served from local server,
@@ -581,7 +581,6 @@ const API_SOURCES = [
 const CORS_PROXIES = [
   'https://api.codetabs.com/v1/proxy?quest=',
   'https://api.allorigins.win/raw?url=',
-  'https://corsproxy.io/?'
 ];
 
 const USE_LOCAL_API = API_BASE === '/api/';
@@ -606,9 +605,8 @@ const TMDB_POSTER_SIZE = 'w342';
 
 // Image CDN proxies for TMDB images
 const IMAGE_PROXIES = [
-  'https://image.tmdb.org',       // direct (might be blocked)
+  'https://image.tmdb.org',
   'https://api.codetabs.com/v1/proxy?quest=',
-  'https://corsproxy.io/?'
 ];
 
 let currentPage = 'watch';
@@ -645,7 +643,7 @@ async function searchTMDB(query) {
   for (const proxy of CORS_PROXIES) {
     try {
       const tmdbUrl = TMDB_BASE + '/search/multi?api_key=' + TMDB_API_KEY + '&language=zh-CN&query=' + encodeURIComponent(query) + '&page=1';
-      const resp = await fetch(proxy + tmdbUrl, { signal: AbortSignal.timeout(10000) });
+      const resp = await fetchWithTimeout(proxy + tmdbUrl, 10000);
       if (!resp.ok) continue;
       const data = await resp.json();
       if (!data.results || data.results.length === 0) return null;
@@ -662,14 +660,14 @@ async function searchTMDB(query) {
         const posterPath = TMDB_IMAGE_BASE + TMDB_POSTER_SIZE + best.poster_path;
         // First try direct (might work on some networks)
         try {
-          const testResp = await fetch(posterPath, { method: 'HEAD', signal: AbortSignal.timeout(3000) });
+      const testResp = await fetchWithTimeout(posterPath, 3000);
           if (testResp.ok) poster = posterPath;
         } catch(e) {}
         // If direct failed, try proxies
         if (!poster) {
           for (const imgProxy of IMAGE_PROXIES.slice(1)) {
             try {
-              const testResp = await fetch(imgProxy + encodeURIComponent(posterPath), { method: 'HEAD', signal: AbortSignal.timeout(3000) });
+              const testResp = await fetchWithTimeout(imgProxy + encodeURIComponent(posterPath), 3000);
               if (testResp.ok) { poster = imgProxy + encodeURIComponent(posterPath); break; }
             } catch(e) {}
           }
@@ -817,45 +815,43 @@ function buildApiUrl(ac, params) {
   return url;
 }
 
+// Polyfill-safe fetch with timeout (AbortSignal.timeout not supported on older mobile browsers)
+function fetchWithTimeout(url, ms) {
+  var ctrl = new AbortController();
+  var timer = setTimeout(function() { ctrl.abort(); }, ms);
+  return fetch(url, { signal: ctrl.signal }).finally(function() { clearTimeout(timer); });
+}
+
 async function apiCall(params) {
-  const ac = params.ac || 'list';
+  var ac = params.ac || 'list';
   
   // Local server mode: direct request, no CORS proxy needed
   if (USE_LOCAL_API) {
     return await fetchAndParse(buildApiUrl(ac, params), ac);
   }
   
-  // Simple parallel race: fire all proxy requests at once, first to succeed wins
-  // This is the fastest approach - no waiting for one to fail before trying another
-  const proxies = [
-    'https://api.codetabs.com/v1/proxy?quest=',
-    'https://corsproxy.io/?',
+  // Sequential fallback: try codetabs first, then backup
+  var apiUrl = buildApiUrlFromBase(API_SOURCES[0], ac, params);
+  var encodedApi = encodeURIComponent(apiUrl);
+  var proxyUrls = [
+    'https://api.codetabs.com/v1/proxy?quest=' + encodedApi,
+    'https://api.codetabs.com/v1/proxy/?quest=' + encodedApi,
   ];
   
-  const apiUrl = buildApiUrlFromBase(API_SOURCES[0], ac, params);
-  
-  // Race pattern: all browsers, no Promise.any dependency
-  return new Promise((resolve, reject) => {
-    let resolved = false;
-    let pending = proxies.length;
-    
-    for (const proxy of proxies) {
-      fetchAndParse(proxy + encodeURIComponent(apiUrl), ac)
-        .then(result => {
-          if (!resolved) { resolved = true; resolve(result); }
-        })
-        .catch(() => {
-          pending--;
-          if (!resolved && pending <= 0) {
-            reject(new Error('网络请求失败，请下拉刷新重试'));
-          }
-        });
+  // Try each proxy in order — simpler and more reliable than parallel race on mobile
+  for (var i = 0; i < proxyUrls.length; i++) {
+    try {
+      return await fetchAndParse(proxyUrls[i], ac);
+    } catch(e) {
+      if (i < proxyUrls.length - 1) continue;
     }
-  });
+  }
+  
+  throw new Error('网络请求失败，请下拉刷新重试');
 }
 
 function buildApiUrlFromBase(base, ac, params) {
-  let url = base + '?ac=' + ac;
+  var url = base + '?ac=' + ac;
   if (params.wd) url += '&wd=' + encodeURIComponent(params.wd);
   if (params.ids) url += '&ids=' + encodeURIComponent(params.ids);
   if (params.t) url += '&t=' + params.t;
@@ -864,7 +860,7 @@ function buildApiUrlFromBase(base, ac, params) {
 }
 
 async function fetchAndParse(url, ac) {
-  const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
+  var res = await fetchWithTimeout(url, 12000);
   if (!res.ok) throw new Error('HTTP '+res.status);
   const text = await res.text();
   let data;
@@ -1746,7 +1742,7 @@ async function checkUpdate() {
   if (!UPDATE_URL) return;
   try {
     const verUrl = UPDATE_URL + 'version.json';
-    const resp = await fetch(verUrl+'?t='+Date.now(), {signal: AbortSignal.timeout(8000)});
+    const resp = await fetchWithTimeout(verUrl+'?t='+Date.now(), 8000);
     if (!resp.ok) return;
     const remote = await resp.json();
     if (remote.version > APP_VERSION) showUpdateBanner(remote);
@@ -1768,7 +1764,7 @@ async function doUpdate() {
   const banner = document.getElementById('updateBanner');
   if (banner) banner.innerHTML = '<div style="text-align:center;width:100%;padding:6px">⏳ 正在更新...</div>';
   try {
-    const resp = await fetch(UPDATE_URL+'?t='+Date.now(), {signal:AbortSignal.timeout(15000)});
+    const resp = await fetchWithTimeout(UPDATE_URL+'?t='+Date.now(), 15000);
     if (!resp.ok) throw new Error('下载失败');
     const newHTML = await resp.text();
     if (newHTML.indexOf('<!DOCTYPE html>')<0 && newHTML.indexOf('<html')<0) throw new Error('格式异常');
