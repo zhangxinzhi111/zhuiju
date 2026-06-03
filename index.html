@@ -2,12 +2,18 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0a1a">
 <title>杩藉墽 - 鍙戠幇濂藉墽锛屽湪绾胯褰?/title>
 <style>
+/* CRITICAL: ensure page is never blank, even if all CSS/JS fails */
+html{height:100%;background:#0a0a1a;display:block;}
+body{background-color:#0a0a1a;min-height:100%;}
+/* end critical */
 :root{
 --bg:#0a0a1a;--bg2:#111128;--surface:rgba(255,255,255,0.04);
 --surface2:rgba(255,255,255,0.08);--border:rgba(255,255,255,0.06);
@@ -22,7 +28,7 @@
 body{
 font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
 background:linear-gradient(180deg,#0a0a1a 0%,#111128 50%,#0a0a1a 100%);
-color:var(--text);min-height:100dvh;
+color:var(--text);min-height:100vh;
 padding-bottom:calc(56px + var(--safe-bottom));
 -webkit-tap-highlight-color:transparent;
 -webkit-font-smoothing:antialiased;
@@ -434,8 +440,8 @@ pointer-events:none;
 <body>
 
 <!-- INLINE LOADING: visible even if JS crashes -->
-<div id="loadingIndicator" style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9999;color:rgba(255,255,255,0.5);font-size:14px;font-family:-apple-system,sans-serif;text-align:center">
-  <div style="font-size:32px;margin-bottom:8px">馃幀</div>
+<div id="loadingIndicator" style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:99999;display:flex;align-items:center;justify-content:center;flex-direction:column;background:#0a0a1a;color:rgba(255,255,255,0.7);font-size:14px;font-family:-apple-system,sans-serif;text-align:center">
+  <div style="font-size:40px;margin-bottom:10px">馃幀</div>
   <div>鍔犺浇涓?..</div>
 </div>
 <noscript>
@@ -448,7 +454,7 @@ pointer-events:none;
 <!-- Header -->
 <div class="header">
 <div class="header-top">
-<div class="logo">杩藉墽<span class="logo-sub">v23</span></div>
+<div class="logo">杩藉墽<span class="logo-sub">v24</span></div>
 <div class="stats-row">
 <span class="stat-badge"><span class="dot"></span><span id="updateCount">鍔犺浇涓?/span></span>
 </div>
@@ -574,7 +580,7 @@ onkeydown="if(event.key==='Enter')doSearch()">
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
 <script>
 // ============ CONFIG ============
-const APP_VERSION = 23;
+const APP_VERSION = 24;
 const UPDATE_URL = 'https://zhangxinzhi111.github.io/zhuiju/';
 
 // Auto-detect local server: use relative /api/ path when served from local server,
