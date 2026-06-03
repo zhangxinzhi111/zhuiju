@@ -436,7 +436,7 @@ pointer-events:none;
 <!-- Header -->
 <div class="header">
 <div class="header-top">
-<div class="logo">追剧<span class="logo-sub">v15</span></div>
+<div class="logo">追剧<span class="logo-sub">v16</span></div>
 <div class="stats-row">
 <span class="stat-badge"><span class="dot"></span><span id="updateCount">加载中</span></span>
 </div>
@@ -562,7 +562,7 @@ onkeydown="if(event.key==='Enter')doSearch()">
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
 <script>
 // ============ CONFIG ============
-const APP_VERSION = 15;
+const APP_VERSION = 16;
 const UPDATE_URL = 'https://zhangxinzhi111.github.io/zhuiju/';
 
 // Auto-detect local server: use relative /api/ path when served from local server,
@@ -819,25 +819,41 @@ async function apiCall(params) {
     return await fetchAndParse(directUrl, ac);
   }
   
-  // CORS proxy mode: try codetabs with retry
-  for (let attempt = 0; attempt < 2; attempt++) {
+  // CORS proxy mode: race direct + proxy, first success wins
+  const proxyUrl = 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(directUrl);
+  
+  // Try direct first (fast path, works on some networks)
+  // Then immediately also launch proxy request
+  // Whichever resolves first wins
+  let lastErr = null;
+  
+  // Attempt 1: race direct and proxy together
+  try {
+    const directPromise = fetchAndParse(directUrl, ac).catch(e => { throw Object.assign(e, {source:'direct'}); });
+    const proxyPromise = fetchAndParse(proxyUrl, ac).catch(e => { throw Object.assign(e, {source:'proxy'}); });
+    
+    // Use Promise.race equivalent - first to resolve wins
+    const result = await new Promise((resolve, reject) => {
+      let rejected = 0;
+      const tryResolve = (val) => resolve(val);
+      const tryReject = (e) => { rejected++; if (rejected >= 2) reject(lastErr || e); else lastErr = e; };
+      directPromise.then(tryResolve).catch(tryReject);
+      proxyPromise.then(tryResolve).catch(tryReject);
+    });
+    return result;
+  } catch(e) {
+    // Both failed, retry proxy once more after brief wait
+    await new Promise(r => setTimeout(r, 1500));
     try {
-      const proxyUrl = 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(directUrl);
       return await fetchAndParse(proxyUrl, ac);
-    } catch(e) {
-      if (attempt === 0) {
-        await new Promise(r => setTimeout(r, 2000));
-        continue;
-      }
-      break;
+    } catch(e2) {
+      throw new Error('网络请求失败，请检查网络后重试');
     }
   }
-  
-  throw new Error('网络代理超时，请下拉刷新重试');
 }
 
 async function fetchAndParse(url, ac) {
-  const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
+  const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
   if (!res.ok) throw new Error('HTTP '+res.status);
   const text = await res.text();
   let data;
@@ -1493,12 +1509,13 @@ async function playItem(vodId, vodName) {
   document.getElementById('playerTitle').textContent = vodName;
   showPlayer();
   
-  // Set a safety timeout - if detail fetch takes >10s, show error
+  // Set a safety timeout - if detail fetch takes >8s, show error with retry button
   const safetyTimer = setTimeout(() => {
     if (!currentPlayData) {
-      document.getElementById('playerContainer').innerHTML = '<div class="player-placeholder">⚠️ 获取超时<br><small>请检查网络后重试</small></div>';
+      document.getElementById('playerContainer').innerHTML = 
+        '<div class="player-placeholder">⚠️ 获取超时<br><small>网络较慢，请重试</small><br><button onclick="playItem('+vodId+',\''+vodName.replace(/'/g,"\\'")+'\')" style="margin-top:12px;padding:8px 20px;border-radius:20px;border:none;background:var(--purple);color:#fff;font-size:12px;cursor:pointer;">🔄 重试</button></div>';
     }
-  }, 10000);
+  }, 8000);
 
   try {
     const detail = await fetchDetail(vodId);
@@ -1508,7 +1525,8 @@ async function playItem(vodId, vodName) {
     openPlayer(detail);
   } catch(e) {
     clearTimeout(safetyTimer);
-    document.getElementById('playerContainer').innerHTML='<div class="player-placeholder">⚠️ 获取失败<br><small>'+(e.message||'')+'</small></div>';
+    document.getElementById('playerContainer').innerHTML=
+      '<div class="player-placeholder">⚠️ 获取失败<br><small>'+(e.message||'网络错误')+'</small><br><button onclick="playItem('+vodId+',\''+vodName.replace(/'/g,"\\'")+'\')" style="margin-top:12px;padding:8px 20px;border-radius:20px;border:none;background:var(--purple);color:#fff;font-size:12px;cursor:pointer;">🔄 重试</button></div>';
   }
 }
 
