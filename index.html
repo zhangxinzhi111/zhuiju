@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#0a0a1a">
-<title>追剧 - 发现好剧，在线观影</title>
+<title>杩藉墽 - 鍙戠幇濂藉墽锛屽湪绾胯褰?/title>
 <style>
 :root{
 --bg:#0a0a1a;--bg2:#111128;--surface:rgba(255,255,255,0.04);
@@ -156,13 +156,13 @@ margin:0 2px 6px;
 .section-title .icon{font-size:15px;}
 .section-count{font-size:10px;color:var(--text3);}
 
-/* ===== COMPACT GRID - 更紧凑的布局 ===== */
+/* ===== COMPACT GRID - 鏇寸揣鍑戠殑甯冨眬 ===== */
 .movie-grid{
 display:grid;grid-template-columns:repeat(auto-fill, minmax(105px, 1fr));
 gap:6px;
 }
 
-/* ===== MOVIE CARD - 更精致 ===== */
+/* ===== MOVIE CARD - 鏇寸簿鑷?===== */
 .movie-card{
 border-radius:var(--radius);overflow:hidden;background:var(--surface);
 border:1px solid var(--border);cursor:pointer;
@@ -364,7 +364,7 @@ transition:all 0.2s;padding:0 6px;
 }
 .episode-btn.active{background:var(--purple);border-color:var(--purple);color:#fff;font-weight:700;}
 .episode-btn.watched{border-color:rgba(46,213,115,0.4);background:rgba(46,213,115,0.06);}
-.episode-btn.watched::after{content:' ✓';font-size:8px;color:var(--green);margin-left:2px;}
+.episode-btn.watched::after{content:' 鉁?;font-size:8px;color:var(--green);margin-left:2px;}
 .episode-btn.active.watched::after{color:#fff;}
 
 /* ===== BOTTOM NAV ===== */
@@ -436,15 +436,15 @@ pointer-events:none;
 <!-- Header -->
 <div class="header">
 <div class="header-top">
-<div class="logo">追剧<span class="logo-sub">v21</span></div>
+<div class="logo">杩藉墽<span class="logo-sub">v22</span></div>
 <div class="stats-row">
-<span class="stat-badge"><span class="dot"></span><span id="updateCount">加载中</span></span>
+<span class="stat-badge"><span class="dot"></span><span id="updateCount">鍔犺浇涓?/span></span>
 </div>
 </div>
 <div class="search-box">
-<input class="search-input" id="searchInput" type="text" placeholder="输入片名搜索..."
+<input class="search-input" id="searchInput" type="text" placeholder="杈撳叆鐗囧悕鎼滅储..."
 onkeydown="if(event.key==='Enter')doSearch()">
-<button class="search-btn" onclick="doSearch()">搜索</button>
+<button class="search-btn" onclick="doSearch()">鎼滅储</button>
 </div>
 </div>
 
@@ -454,7 +454,7 @@ onkeydown="if(event.key==='Enter')doSearch()">
 <!-- Content -->
 <div class="content">
 
-<!-- 观影页 -->
+<!-- 瑙傚奖椤?-->
 <div class="page active" id="page-watch">
 <div class="banner-wrap">
 <div class="banner-scroll" id="bannerScroll"></div>
@@ -462,79 +462,79 @@ onkeydown="if(event.key==='Enter')doSearch()">
 </div>
 <div class="cat-bar" id="catBar"></div>
 <div class="section-header">
-<div class="section-title"><span class="icon">🎬</span>热播推荐</div>
+<div class="section-title"><span class="icon">馃幀</span>鐑挱鎺ㄨ崘</div>
 <div class="section-count" id="sectionCount"></div>
 </div>
 <div class="movie-grid" id="movieGrid"></div>
 <div class="status-bar" id="hotStatus"></div>
 </div>
 
-<!-- 搜索页 -->
+<!-- 鎼滅储椤?-->
 <div class="page" id="page-search">
 <div class="section-header">
-<div class="section-title"><span class="icon">🔍</span>搜索 "<span id="searchQuery"></span>"</div>
+<div class="section-title"><span class="icon">馃攳</span>鎼滅储 "<span id="searchQuery"></span>"</div>
 </div>
 <div class="movie-grid" id="searchResults"></div>
 <div class="status-bar" id="searchStatus"></div>
 </div>
 
-<!-- 收藏页 -->
+<!-- 鏀惰棌椤?-->
 <div class="page" id="page-favorites">
-<div class="fav-actions"><button class="btn-text" onclick="clearFavorites()">清空全部</button></div>
+<div class="fav-actions"><button class="btn-text" onclick="clearFavorites()">娓呯┖鍏ㄩ儴</button></div>
 <div class="movie-grid" id="favGrid"></div>
 <div class="empty-state" id="favEmpty">
-<div class="icon">💔</div><p>还没有收藏<br>去首页发现好剧吧~</p>
+<div class="icon">馃挃</div><p>杩樻病鏈夋敹钘?br>鍘婚椤靛彂鐜板ソ鍓у惂~</p>
 </div>
 </div>
 
-<!-- 历史页 -->
+<!-- 鍘嗗彶椤?-->
 <div class="page" id="page-history">
-<div class="fav-actions"><button class="btn-text" onclick="clearHistory()">清空全部</button></div>
+<div class="fav-actions"><button class="btn-text" onclick="clearHistory()">娓呯┖鍏ㄩ儴</button></div>
 <div class="movie-grid" id="historyGrid"></div>
 <div class="empty-state" id="historyEmpty">
-<div class="icon">📺</div><p>暂无观看记录<br>去搜一部剧开始追吧~</p>
+<div class="icon">馃摵</div><p>鏆傛棤瑙傜湅璁板綍<br>鍘绘悳涓€閮ㄥ墽寮€濮嬭拷鍚</p>
 </div>
 </div>
 </div>
 
-<!-- 详情浮层 -->
+<!-- 璇︽儏娴眰 -->
 <div class="sheet-overlay" id="sheetOverlay" onclick="if(event.target===this)closeSheet()">
 <div class="sheet" id="sheet">
 <div class="sheet-poster" id="sheetPoster">
-<button class="sheet-close" onclick="closeSheet()">✕</button>
+<button class="sheet-close" onclick="closeSheet()">鉁?/button>
 </div>
 <div class="sheet-body">
 <h2 id="sheetTitle"></h2>
 <div class="sheet-meta" id="sheetMeta"></div>
 <div class="sheet-desc" id="sheetDesc" onclick="this.classList.toggle('expanded')"></div>
 <div class="sheet-actions">
-<button class="sheet-btn sheet-btn-play" id="sheetPlayBtn">▶ 立即播放</button>
-<button class="sheet-btn sheet-btn-fav" id="sheetFavBtn">🤍 收藏</button>
+<button class="sheet-btn sheet-btn-play" id="sheetPlayBtn">鈻?绔嬪嵆鎾斁</button>
+<button class="sheet-btn sheet-btn-fav" id="sheetFavBtn">馃 鏀惰棌</button>
 </div>
 </div>
 </div>
 </div>
 
-<!-- 播放器 -->
+<!-- 鎾斁鍣?-->
 <div class="player-page" id="playerPage">
 <div class="player-header">
-<button class="back-btn" onclick="closePlayer()">✕</button>
-<div class="player-title" id="playerTitle">播放中</div>
+<button class="back-btn" onclick="closePlayer()">鉁?/button>
+<div class="player-title" id="playerTitle">鎾斁涓?/div>
 </div>
 <div class="player-container" id="playerContainer">
-<div class="player-placeholder">🎬 正在加载播放器...</div>
+<div class="player-placeholder">馃幀 姝ｅ湪鍔犺浇鎾斁鍣?..</div>
 <div class="player-mode-toggle" id="playerModeToggle" style="display:none">
-<button class="player-mode-btn active" id="btnModeDirect" onclick="switchPlayerMode('direct')">直连</button>
-<button class="player-mode-btn" id="btnModeProxy" onclick="switchPlayerMode('proxy')">解析</button>
+<button class="player-mode-btn active" id="btnModeDirect" onclick="switchPlayerMode('direct')">鐩磋繛</button>
+<button class="player-mode-btn" id="btnModeProxy" onclick="switchPlayerMode('proxy')">瑙ｆ瀽</button>
 </div>
 </div>
 <div class="source-select" id="sourceSelect"></div>
 <div class="source-select" style="border-top:none;padding-top:0;font-size:10px;color:var(--text3);justify-content:flex-start">
-  <span>🔗 当前线路：<span id="currentParseLabel">解析1</span></span>
-  <button class="source-btn" onclick="switchParseLine()" style="margin-left:auto">🔄 换线路</button>
+  <span>馃敆 褰撳墠绾胯矾锛?span id="currentParseLabel">瑙ｆ瀽1</span></span>
+  <button class="source-btn" onclick="switchParseLine()" style="margin-left:auto">馃攧 鎹㈢嚎璺?/button>
 </div>
 <div class="episode-toggle" id="episodeToggle" onclick="toggleEpisodes()">
-<span>📺 选集</span><span class="arrow" id="episodeArrow">▼</span>
+<span>馃摵 閫夐泦</span><span class="arrow" id="episodeArrow">鈻?/span>
 </div>
 <div class="episode-bar" id="episodeBar"></div>
 </div>
@@ -543,26 +543,26 @@ onkeydown="if(event.key==='Enter')doSearch()">
 <div class="bottom-nav">
 <button class="nav-item active" onclick="switchPage('watch')">
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
-观影
+瑙傚奖
 </button>
 <button class="nav-item" onclick="switchPage('search')">
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-搜索
+鎼滅储
 </button>
 <button class="nav-item" onclick="switchPage('favorites')">
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-收藏
+鏀惰棌
 </button>
 <button class="nav-item" onclick="switchPage('history')">
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-历史
+鍘嗗彶
 </button>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
 <script>
 // ============ CONFIG ============
-const APP_VERSION = 20;
+const APP_VERSION = 22;
 const UPDATE_URL = 'https://zhangxinzhi111.github.io/zhuiju/';
 
 // Auto-detect local server: use relative /api/ path when served from local server,
@@ -614,7 +614,7 @@ const IMAGE_PROXIES = [
 ];
 
 let currentPage = 'watch';
-let currentCategory = '全部';
+let currentCategory = '鍏ㄩ儴';
 let allMovies = [];
 let favorites = JSON.parse(localStorage.getItem('zhuiju_favs') || '[]');
 let history = JSON.parse(localStorage.getItem('zhuiju_history') || '[]');
@@ -717,14 +717,14 @@ function posterColor(name) {
 function posterIcon(name) {
   // Map category to icon
   const t = (name || '').toLowerCase();
-  if (t.includes('电影')||t.includes('动作')||t.includes('科幻')) return '🎬';
-  if (t.includes('电视')||t.includes('剧')||t.includes('drama')) return '📺';
-  if (t.includes('动漫')||t.includes('动画')) return '🐾';
-  if (t.includes('综艺')) return '🎤';
-  return '🎬';
+  if (t.includes('鐢靛奖')||t.includes('鍔ㄤ綔')||t.includes('绉戝够')) return '馃幀';
+  if (t.includes('鐢佃')||t.includes('鍓?)||t.includes('drama')) return '馃摵';
+  if (t.includes('鍔ㄦ极')||t.includes('鍔ㄧ敾')) return '馃惥';
+  if (t.includes('缁艰壓')) return '馃帳';
+  return '馃幀';
 }
 
-// ============ POSTER URL - 核心改进：多代理尝试 ============
+// ============ POSTER URL - 鏍稿績鏀硅繘锛氬浠ｇ悊灏濊瘯 ============
 function getPosterURL(item) {
   const cacheKey = 'poster_' + item.vod_id;
   if (posterCache[cacheKey]) return posterCache[cacheKey];
@@ -756,7 +756,7 @@ function getRating(item) {
   return null;
 }
 
-// ============ POSTER HTML - 更美观的 fallback ============
+// ============ POSTER HTML - 鏇寸編瑙傜殑 fallback ============
 function posterHTML(item) {
   const c = posterColor(item.vod_name);
   const pic = getPosterURL(item);
@@ -766,7 +766,7 @@ function posterHTML(item) {
   
   let ratingHTML = '';
   if (rating) {
-    ratingHTML = '<div class="tmdb-rating">⭐ '+rating+'</div>';
+    ratingHTML = '<div class="tmdb-rating">猸?'+rating+'</div>';
   }
   
   // Always show img with onerror fallback - try proxy if direct fails
@@ -824,7 +824,7 @@ function fetchWithTimeout(url, ms) {
   return new Promise(function(resolve, reject) {
     var done = false;
     var timer = setTimeout(function() {
-      if (!done) { done = true; reject(new Error('请求超时(' + Math.floor(ms/1000) + 's)')); }
+      if (!done) { done = true; reject(new Error('璇锋眰瓒呮椂(' + Math.floor(ms/1000) + 's)')); }
     }, ms);
     
     fetch(url).then(function(resp) {
@@ -844,7 +844,7 @@ var PROXY_SOURCES = [
 
 // Debug log - visible in console
 var _debugLog = [];
-function _debug(msg) { _debugLog.push(new Date().toISOString().substr(11,8) + ' ' + msg); console.log('[追剧]', msg); }
+function _debug(msg) { _debugLog.push(new Date().toISOString().substr(11,8) + ' ' + msg); console.log('[杩藉墽]', msg); }
 
 async function apiCall(params) {
   var ac = params.ac || 'list';
@@ -874,7 +874,7 @@ async function apiCall(params) {
   }
   
   _debug('  ALL proxies failed');
-  throw new Error('网络请求失败: ' + (lastErr ? lastErr.message : '所有代理不可用'));
+  throw new Error('缃戠粶璇锋眰澶辫触: ' + (lastErr ? lastErr.message : '鎵€鏈変唬鐞嗕笉鍙敤'));
 }
 
 function buildApiUrlFromBase(base, ac, params) {
@@ -892,15 +892,15 @@ async function fetchAndParse(url, ac) {
   const text = await res.text();
   let data;
   try { data = JSON.parse(text); } catch(e) {
-    if (ac === 'detail') throw new Error('详情解析失败');
+    if (ac === 'detail') throw new Error('璇︽儏瑙ｆ瀽澶辫触');
     const list = parseXMLVod(text);
     if (list.length) return { list, total: list.length };
-    throw new Error('API 返回格式异常');
+    throw new Error('API 杩斿洖鏍煎紡寮傚父');
   }
   // API returns code=1 for success
   if (ac === 'detail') {
     const item = data.list ? data.list[0] : data;
-    if (!item || !item.vod_id) throw new Error('详情数据为空');
+    if (!item || !item.vod_id) throw new Error('璇︽儏鏁版嵁涓虹┖');
     return {
       vod_id: item.vod_id, vod_name: item.vod_name || item.title,
       vod_pic: item.vod_pic || item.pic || '',
@@ -961,7 +961,7 @@ function parsePlayUrls(playUrl, playFrom) {
   const names = playFrom ? playFrom.split('$$$') : [];
   const result = [];
   sources.forEach((src, si) => {
-    const name = names[si] || '线路'+(si+1);
+    const name = names[si] || '绾胯矾'+(si+1);
     const eps = [];
     src.split('#').forEach(part => {
       const sep = part.lastIndexOf('$');
@@ -1055,7 +1055,7 @@ function updateBannerDots() {
 }
 
 // ============ RENDER: CATEGORY ============
-const CATEGORIES = ['全部', '电影', '电视剧', '动漫', '综艺'];
+const CATEGORIES = ['鍏ㄩ儴', '鐢靛奖', '鐢佃鍓?, '鍔ㄦ极', '缁艰壓'];
 let sortMode = 'hot';
 
 function renderCategoryBar() {
@@ -1065,8 +1065,8 @@ function renderCategoryBar() {
     html += '<button class="cat-btn'+(active?' active':'')+'" onclick="filterCategory(\''+c+'\')">'+c+'</button>';
   });
   html += '<span style="flex:1"></span>';
-  html += '<button class="sort-btn'+(sortMode==='hot'?' active':'')+'" onclick="setSort(\'hot\')">🔥 最热</button>';
-  html += '<button class="sort-btn'+(sortMode==='new'?' active':'')+'" onclick="setSort(\'new\')">🆕 最新</button>';
+  html += '<button class="sort-btn'+(sortMode==='hot'?' active':'')+'" onclick="setSort(\'hot\')">馃敟 鏈€鐑?/button>';
+  html += '<button class="sort-btn'+(sortMode==='new'?' active':'')+'" onclick="setSort(\'new\')">馃啎 鏈€鏂?/button>';
   document.getElementById('catBar').innerHTML = html;
 }
 
@@ -1077,27 +1077,27 @@ function filterCategory(cat) { currentCategory = cat; renderCategoryBar(); rende
 // ============ CATEGORY MATCHING ============
 function matchCategory(typeName, cat) {
   const t = (typeName || '').toLowerCase();
-  if (cat === '电影') {
-    if (t.includes('电影') || t.includes('movie')) return true;
-    const movieKeywords = ['动作', '喜剧', '爱情', '科幻', '恐怖', '悬疑', '惊悚', '战争',
-      '剧情', '犯罪', '冒险', '奇幻', '纪录', '历史', '西部', '歌舞', '音乐',
-      '动画片', '文艺', '伦理', '短片', '微电影'];
+  if (cat === '鐢靛奖') {
+    if (t.includes('鐢靛奖') || t.includes('movie')) return true;
+    const movieKeywords = ['鍔ㄤ綔', '鍠滃墽', '鐖辨儏', '绉戝够', '鎭愭€?, '鎮枒', '鎯婃倸', '鎴樹簤',
+      '鍓ф儏', '鐘姜', '鍐掗櫓', '濂囧够', '绾綍', '鍘嗗彶', '瑗块儴', '姝岃垶', '闊充箰',
+      '鍔ㄧ敾鐗?, '鏂囪壓', '浼︾悊', '鐭墖', '寰數褰?];
     return movieKeywords.some(kw => t.includes(kw));
   }
-  if (cat === '电视剧') {
-    if (t.includes('电视') || t.includes('剧') || t.includes('tv') || t.includes('drama')) return true;
-    const tvKeywords = ['国产剧', '港剧', '台剧', '韩剧', '日剧', '美剧', '英剧',
-      '泰剧', '海外剧', '网剧', '连续剧', '短剧'];
+  if (cat === '鐢佃鍓?) {
+    if (t.includes('鐢佃') || t.includes('鍓?) || t.includes('tv') || t.includes('drama')) return true;
+    const tvKeywords = ['鍥戒骇鍓?, '娓墽', '鍙板墽', '闊╁墽', '鏃ュ墽', '缇庡墽', '鑻卞墽',
+      '娉板墽', '娴峰鍓?, '缃戝墽', '杩炵画鍓?, '鐭墽'];
     return tvKeywords.some(kw => t.includes(kw));
   }
-  if (cat === '动漫') {
-    if (t.includes('动漫') || t.includes('动画') || t.includes('anime')) return true;
-    const animeKeywords = ['日漫', '国漫', '剧场版', 'OVA', 'OAD'];
+  if (cat === '鍔ㄦ极') {
+    if (t.includes('鍔ㄦ极') || t.includes('鍔ㄧ敾') || t.includes('anime')) return true;
+    const animeKeywords = ['鏃ユ极', '鍥芥极', '鍓у満鐗?, 'OVA', 'OAD'];
     return animeKeywords.some(kw => t.includes(kw));
   }
-  if (cat === '综艺') {
-    if (t.includes('综艺') || t.includes('variety') || t.includes('真人秀')) return true;
-    const varietyKeywords = ['脱口秀', '访谈', '选秀', '竞技', '美食', '旅行', '音乐节'];
+  if (cat === '缁艰壓') {
+    if (t.includes('缁艰壓') || t.includes('variety') || t.includes('鐪熶汉绉€')) return true;
+    const varietyKeywords = ['鑴卞彛绉€', '璁胯皥', '閫夌', '绔炴妧', '缇庨', '鏃呰', '闊充箰鑺?];
     return varietyKeywords.some(kw => t.includes(kw));
   }
   return true;
@@ -1114,7 +1114,7 @@ function renderMovieCard(item) {
     posterHTML(item)+
     '<div class="poster-gradient"></div>'+
     '<div class="poster-label">'+name+'</div>'+
-    '<button class="card-fav'+(isFaved?' active':'')+'" onclick="event.stopPropagation();quickFav('+id+',\''+nameSafe+'\',\''+(item.vod_pic||'').replace(/'/g,"\\'")+'\',\''+(item.vod_remarks||'').replace(/'/g,"\\'")+'\')">'+(isFaved?'❤️':'🤍')+'</button>'+
+    '<button class="card-fav'+(isFaved?' active':'')+'" onclick="event.stopPropagation();quickFav('+id+',\''+nameSafe+'\',\''+(item.vod_pic||'').replace(/'/g,"\\'")+'\',\''+(item.vod_remarks||'').replace(/'/g,"\\'")+'\')">'+(isFaved?'鉂わ笍':'馃')+'</button>'+
     '</div>'+
     '<div class="card-body">'+
     '<div class="card-title">'+name+'</div>'+
@@ -1132,7 +1132,7 @@ function renderSkeletons(count) {
 
 function getFilteredMovies() {
   let list;
-  if (currentCategory === '全部') list = allMovies.slice();
+  if (currentCategory === '鍏ㄩ儴') list = allMovies.slice();
   else list = allMovies.filter(m => matchCategory(m.type_name, currentCategory));
   if (sortMode === 'new') {
     list.sort((a, b) => {
@@ -1157,7 +1157,7 @@ function extractYear(item) {
 function renderMovieGrid() {
   const filtered = getFilteredMovies();
   document.getElementById('movieGrid').innerHTML = filtered.map(renderMovieCard).join('');
-  document.getElementById('sectionCount').textContent = '共 '+filtered.length+' 部';
+  document.getElementById('sectionCount').textContent = '鍏?'+filtered.length+' 閮?;
 }
 
 // ============ SHEET (Detail) ============
@@ -1165,9 +1165,9 @@ async function openSheet(vodId, vodName) {
   const overlay = document.getElementById('sheetOverlay');
   overlay.classList.add('show');
   document.getElementById('sheetTitle').textContent = vodName;
-  document.getElementById('sheetMeta').innerHTML = '<span class="tag">加载中...</span>';
+  document.getElementById('sheetMeta').innerHTML = '<span class="tag">鍔犺浇涓?..</span>';
   document.getElementById('sheetDesc').textContent = '';
-  document.getElementById('sheetPoster').innerHTML = '<button class="sheet-close" onclick="closeSheet()">✕</button><div class="sheet-fallback">🎬</div>';
+  document.getElementById('sheetPoster').innerHTML = '<button class="sheet-close" onclick="closeSheet()">鉁?/button><div class="sheet-fallback">馃幀</div>';
 
   try {
     const detail = await fetchDetail(vodId);
@@ -1182,9 +1182,9 @@ async function openSheet(vodId, vodName) {
       ? "this.onerror=null;this.src='" + proxyPic + "'"
       : "this.style.display='none';this.nextElementSibling.style.display='flex'";
     if (pic) {
-      document.getElementById('sheetPoster').innerHTML = '<button class="sheet-close" onclick="closeSheet()">✕</button><img src="'+pic+'" onerror="'+onerr+'"><div class="sheet-fallback" style="display:none;background:linear-gradient(135deg,'+c[0]+','+c[1]+')">'+icon+'</div>';
+      document.getElementById('sheetPoster').innerHTML = '<button class="sheet-close" onclick="closeSheet()">鉁?/button><img src="'+pic+'" onerror="'+onerr+'"><div class="sheet-fallback" style="display:none;background:linear-gradient(135deg,'+c[0]+','+c[1]+')">'+icon+'</div>';
     } else {
-      document.getElementById('sheetPoster').innerHTML = '<button class="sheet-close" onclick="closeSheet()">✕</button><div class="sheet-fallback" style="background:linear-gradient(135deg,'+c[0]+','+c[1]+')">'+icon+'</div>';
+      document.getElementById('sheetPoster').innerHTML = '<button class="sheet-close" onclick="closeSheet()">鉁?/button><div class="sheet-fallback" style="background:linear-gradient(135deg,'+c[0]+','+c[1]+')">'+icon+'</div>';
     }
 
     document.getElementById('sheetTitle').textContent = detail.vod_name;
@@ -1196,26 +1196,26 @@ async function openSheet(vodId, vodName) {
     if (detail.vod_remarks) metaHTML += '<span class="tag">'+escapeHTML(detail.vod_remarks)+'</span>';
     if (tmdbEnabled()) {
       const tmdb = tmdbCache[detail.vod_name];
-      if (tmdb && tmdb.rating) metaHTML += '<span class="tag" style="color:var(--gold);background:rgba(249,202,36,0.1)">⭐ '+tmdb.rating+'</span>';
+      if (tmdb && tmdb.rating) metaHTML += '<span class="tag" style="color:var(--gold);background:rgba(249,202,36,0.1)">猸?'+tmdb.rating+'</span>';
     }
-    document.getElementById('sheetMeta').innerHTML = metaHTML || '<span class="tag">暂无信息</span>';
+    document.getElementById('sheetMeta').innerHTML = metaHTML || '<span class="tag">鏆傛棤淇℃伅</span>';
 
     let desc = detail.vod_blurb || detail.vod_content || '';
     if (!desc && tmdbEnabled()) {
       const tmdb = tmdbCache[detail.vod_name];
       if (tmdb && tmdb.overview) desc = tmdb.overview;
     }
-    document.getElementById('sheetDesc').textContent = desc || '暂无简介';
+    document.getElementById('sheetDesc').textContent = desc || '鏆傛棤绠€浠?;
     document.getElementById('sheetDesc').classList.remove('expanded');
 
     const isFaved = favorites.some(f => f.vod_id === detail.vod_id);
     const favBtn = document.getElementById('sheetFavBtn');
-    favBtn.textContent = isFaved ? '❤️ 已收藏' : '🤍 收藏';
+    favBtn.textContent = isFaved ? '鉂わ笍 宸叉敹钘? : '馃 鏀惰棌';
     favBtn.className = 'sheet-btn sheet-btn-fav' + (isFaved ? ' active' : '');
     favBtn.onclick = () => {
       toggleFavItem({vod_id: detail.vod_id, vod_name: detail.vod_name, vod_pic: detail.vod_pic, vod_remarks: detail.vod_remarks});
       const nowFaved = favorites.some(f => f.vod_id === detail.vod_id);
-      favBtn.textContent = nowFaved ? '❤️ 已收藏' : '🤍 收藏';
+      favBtn.textContent = nowFaved ? '鉂わ笍 宸叉敹钘? : '馃 鏀惰棌';
       favBtn.className = 'sheet-btn sheet-btn-fav' + (nowFaved ? ' active' : '');
       renderMovieGrid();
     };
@@ -1226,7 +1226,7 @@ async function openSheet(vodId, vodName) {
     };
 
   } catch(e) {
-    document.getElementById('sheetDesc').textContent = '加载详情失败: ' + (e.message || '未知错误');
+    document.getElementById('sheetDesc').textContent = '鍔犺浇璇︽儏澶辫触: ' + (e.message || '鏈煡閿欒');
   }
 }
 
@@ -1247,14 +1247,14 @@ function toggleFavItem(item) {
   if (idx >= 0) favorites.splice(idx, 1);
   else favorites.unshift(Object.assign({}, item, { savedAt: Date.now() }));
   saveFavorites();
-  showToast(favorites.some(f=>f.vod_id===item.vod_id) ? '已收藏 ❤️' : '已取消收藏');
+  showToast(favorites.some(f=>f.vod_id===item.vod_id) ? '宸叉敹钘?鉂わ笍' : '宸插彇娑堟敹钘?);
 }
 
 function saveFavorites() { localStorage.setItem('zhuiju_favs', JSON.stringify(favorites)); }
 
 function clearFavorites() {
   if (!favorites.length) return;
-  if (!confirm('确定清空全部 '+favorites.length+' 个收藏？')) return;
+  if (!confirm('纭畾娓呯┖鍏ㄩ儴 '+favorites.length+' 涓敹钘忥紵')) return;
   favorites = []; saveFavorites(); renderFavorites();
 }
 
@@ -1296,16 +1296,16 @@ function deleteHistoryEntry(vodId) { history = history.filter(h => h.vod_id !== 
 
 function clearHistory() {
   if (!history.length) return;
-  if (!confirm('确定清空全部 '+history.length+' 条记录？')) return;
+  if (!confirm('纭畾娓呯┖鍏ㄩ儴 '+history.length+' 鏉¤褰曪紵')) return;
   history = []; localStorage.setItem('zhuiju_history', JSON.stringify(history)); renderHistory();
 }
 
 function formatTimeAgo(ts) {
   const diff = Date.now() - ts;
-  if (diff < 60000) return '刚刚';
-  if (diff < 3600000) return Math.floor(diff/60000)+'分钟前';
-  if (diff < 86400000) return Math.floor(diff/3600000)+'小时前';
-  if (diff < 604800000) return Math.floor(diff/86400000)+'天前';
+  if (diff < 60000) return '鍒氬垰';
+  if (diff < 3600000) return Math.floor(diff/60000)+'鍒嗛挓鍓?;
+  if (diff < 86400000) return Math.floor(diff/3600000)+'灏忔椂鍓?;
+  if (diff < 604800000) return Math.floor(diff/86400000)+'澶╁墠';
   const d = new Date(ts); return (d.getMonth()+1)+'/'+d.getDate();
 }
 
@@ -1321,14 +1321,14 @@ function renderHistory() {
   if (history.length === 0) { grid.innerHTML = ''; empty.style.display = 'block'; return; }
   empty.style.display = 'none';
   grid.innerHTML = history.map(h => {
-    const progress = h.total_eps > 0 ? '第'+(h.ep_idx+1)+'/'+h.total_eps+'集' : h.ep_label;
+    const progress = h.total_eps > 0 ? '绗?+(h.ep_idx+1)+'/'+h.total_eps+'闆? : h.ep_label;
     const name = escapeHTML(h.vod_name);
     const nameSafe = name.replace(/'/g,"\\'");
     return '<div class="movie-card" onclick="resumeFromHistory('+h.vod_id+','+h.source_idx+','+h.ep_idx+')">'+
       '<div class="card-poster">'+posterHTML(h)+
       '<div class="poster-gradient"></div>'+
       '<div class="poster-label">'+name+'</div>'+
-      '<button class="card-fav" onclick="event.stopPropagation();deleteHistoryEntry('+h.vod_id+')" style="font-size:12px">✕</button>'+
+      '<button class="card-fav" onclick="event.stopPropagation();deleteHistoryEntry('+h.vod_id+')" style="font-size:12px">鉁?/button>'+
       '</div>'+
       '<div class="card-body">'+
       '<div class="card-title">'+name+'</div>'+
@@ -1342,23 +1342,23 @@ function renderHistory() {
 
 async function resumeFromHistory(vodId, sourceIdx, epIdx) {
   const container = document.getElementById('playerContainer');
-  container.innerHTML = '<div class="player-placeholder">⏳ 正在恢复播放...</div>';
+  container.innerHTML = '<div class="player-placeholder">鈴?姝ｅ湪鎭㈠鎾斁...</div>';
   showPlayer();
   
   const safetyTimer = setTimeout(() => {
     if (!currentPlayData) {
-      container.innerHTML = '<div class="player-placeholder">⚠️ 恢复超时<br><small>请检查网络后重试</small></div>';
+      container.innerHTML = '<div class="player-placeholder">鈿狅笍 鎭㈠瓒呮椂<br><small>璇锋鏌ョ綉缁滃悗閲嶈瘯</small></div>';
     }
   }, 10000);
 
   try {
     const detail = await fetchDetail(vodId);
     clearTimeout(safetyTimer);
-    if (!detail || !detail.vod_play_url) { container.innerHTML='<div class="player-placeholder">⚠️ 暂无播放资源</div>'; return; }
+    if (!detail || !detail.vod_play_url) { container.innerHTML='<div class="player-placeholder">鈿狅笍 鏆傛棤鎾斁璧勬簮</div>'; return; }
     currentPlayData = detail;
     document.getElementById('playerTitle').textContent = detail.vod_name;
     const allSources = parsePlayUrls(detail.vod_play_url, detail.vod_play_from);
-    if (!allSources.length) { container.innerHTML='<div class="player-placeholder">⚠️ 无法解析播放地址</div>'; return; }
+    if (!allSources.length) { container.innerHTML='<div class="player-placeholder">鈿狅笍 鏃犳硶瑙ｆ瀽鎾斁鍦板潃</div>'; return; }
     currentSourceIdx = Math.min(sourceIdx, allSources.length-1);
     const src = allSources[currentSourceIdx];
     document.getElementById('sourceSelect').innerHTML = allSources.map((s,i)=>
@@ -1368,7 +1368,7 @@ async function resumeFromHistory(vodId, sourceIdx, epIdx) {
     renderEpisodes(src, currentEpIdx);
     document.getElementById('playerPage').dataset.sources = JSON.stringify(allSources);
     playEpisode(src.eps[currentEpIdx].url, null, 0);
-  } catch(e) { clearTimeout(safetyTimer); container.innerHTML='<div class="player-placeholder">⚠️ 恢复失败<br><small>'+(e.message||'')+'</small></div>'; }
+  } catch(e) { clearTimeout(safetyTimer); container.innerHTML='<div class="player-placeholder">鈿狅笍 鎭㈠澶辫触<br><small>'+(e.message||'')+'</small></div>'; }
 }
 
 // ============ EPISODE TOGGLE ============
@@ -1436,11 +1436,11 @@ function playViaProxy(url, startIdx) {
 
   const idx = startIdx || 0;
   if (idx >= PARSE_APIS.length) {
-    container.innerHTML = '<div class="player-placeholder">⚠️ 所有解析线路均不可用<br><small>请稍后再试或检查网络连接</small></div>';
+    container.innerHTML = '<div class="player-placeholder">鈿狅笍 鎵€鏈夎В鏋愮嚎璺潎涓嶅彲鐢?br><small>璇风◢鍚庡啀璇曟垨妫€鏌ョ綉缁滆繛鎺?/small></div>';
     return;
   }
 
-  container.innerHTML = '<div class="player-placeholder">⏳ 正在连接解析线路 '+(idx+1)+'/'+PARSE_APIS.length+'...</div>';
+  container.innerHTML = '<div class="player-placeholder">鈴?姝ｅ湪杩炴帴瑙ｆ瀽绾胯矾 '+(idx+1)+'/'+PARSE_APIS.length+'...</div>';
 
   const encodedUrl = encodeURIComponent(url);
   const iframe = document.createElement('iframe');
@@ -1474,7 +1474,7 @@ function playViaProxy(url, startIdx) {
     switched = true;
     parseApiIdx = idx;
     const label = document.getElementById('currentParseLabel');
-    if (label) label.textContent = '解析' + (idx + 1);
+    if (label) label.textContent = '瑙ｆ瀽' + (idx + 1);
   });
 
   iframe.addEventListener('error', () => {
@@ -1508,13 +1508,13 @@ function tryDirectVideo(url) {
   playerVideo = video;
   
   video.addEventListener('error', () => {
-    container.innerHTML = '<div class="player-placeholder">⚠️ 所有播放方式均失败<br><small>请尝试切换线路或稍后重试</small></div>';
+    container.innerHTML = '<div class="player-placeholder">鈿狅笍 鎵€鏈夋挱鏀炬柟寮忓潎澶辫触<br><small>璇峰皾璇曞垏鎹㈢嚎璺垨绋嶅悗閲嶈瘯</small></div>';
   });
   
   video.addEventListener('loadeddata', () => {
     parseApiIdx = PARSE_APIS.length;
     const label = document.getElementById('currentParseLabel');
-    if (label) label.textContent = '直连';
+    if (label) label.textContent = '鐩磋繛';
   });
   
   video.play().catch(() => {});
@@ -1540,43 +1540,43 @@ function showPlayer() {
 
 async function playItem(vodId, vodName) {
   _debug('playItem: ' + vodName + ' (id=' + vodId + ')');
-  document.getElementById('playerContainer').innerHTML = '<div class="player-placeholder">⏳ 获取播放地址...<br><small style="color:var(--text3);margin-top:4px;display:block" id="debugStatus"></small></div>';
+  document.getElementById('playerContainer').innerHTML = '<div class="player-placeholder">鈴?鑾峰彇鎾斁鍦板潃...<br><small style="color:var(--text3);margin-top:4px;display:block" id="debugStatus"></small></div>';
   document.getElementById('playerTitle').textContent = vodName;
   showPlayer();
   
   var debugEl = document.getElementById('debugStatus');
   function updateDebug(msg) { if (debugEl) debugEl.textContent = msg; }
   
-  updateDebug('正在连接API...');
+  updateDebug('姝ｅ湪杩炴帴API...');
   
   // Safety timeout
   var safetyTimer = setTimeout(function() {
     if (!currentPlayData) {
       var dl = _debugLog.slice(-5).join('<br>');
       document.getElementById('playerContainer').innerHTML = 
-        '<div class="player-placeholder">⚠️ 获取超时(15s)<br><small style="margin-top:8px;display:block;color:var(--text3)">' + dl + '</small><br><button onclick="playItem('+vodId+',\''+vodName.replace(/'/g,"\\'")+'\')" style="margin-top:12px;padding:8px 20px;border-radius:20px;border:none;background:var(--purple);color:#fff;font-size:12px;cursor:pointer;">🔄 重试</button></div>';
+        '<div class="player-placeholder">鈿狅笍 鑾峰彇瓒呮椂(15s)<br><small style="margin-top:8px;display:block;color:var(--text3)">' + dl + '</small><br><button onclick="playItem('+vodId+',\''+vodName.replace(/'/g,"\\'")+'\')" style="margin-top:12px;padding:8px 20px;border-radius:20px;border:none;background:var(--purple);color:#fff;font-size:12px;cursor:pointer;">馃攧 閲嶈瘯</button></div>';
     }
   }, 15000);
 
   try {
-    updateDebug('正在获取详情...');
+    updateDebug('姝ｅ湪鑾峰彇璇︽儏...');
     var detail = await fetchDetail(vodId);
-    updateDebug('详情获取成功');
+    updateDebug('璇︽儏鑾峰彇鎴愬姛');
     clearTimeout(safetyTimer);
     if (!detail || !detail.vod_play_url) { 
-      updateDebug('无播放资源');
-      document.getElementById('playerContainer').innerHTML='<div class="player-placeholder">⚠️ 暂无播放资源<br><small style="color:var(--text3)">该影片暂无可播放的源</small></div>'; 
+      updateDebug('鏃犳挱鏀捐祫婧?);
+      document.getElementById('playerContainer').innerHTML='<div class="player-placeholder">鈿狅笍 鏆傛棤鎾斁璧勬簮<br><small style="color:var(--text3)">璇ュ奖鐗囨殏鏃犲彲鎾斁鐨勬簮</small></div>'; 
       return; 
     }
     currentPlayData = detail;
-    updateDebug('正在打开播放器...');
+    updateDebug('姝ｅ湪鎵撳紑鎾斁鍣?..');
     openPlayer(detail);
   } catch(e) {
     clearTimeout(safetyTimer);
-    updateDebug('错误: ' + (e.message || ''));
+    updateDebug('閿欒: ' + (e.message || ''));
     var dl = _debugLog.slice(-5).join('<br>');
     document.getElementById('playerContainer').innerHTML=
-      '<div class="player-placeholder">⚠️ 获取失败<br><small>'+(e.message||'网络错误')+'</small><br><small style="margin-top:6px;display:block;color:var(--text3)">' + dl + '</small><br><button onclick="playItem('+vodId+',\''+vodName.replace(/'/g,"\\'")+'\')" style="margin-top:12px;padding:8px 20px;border-radius:20px;border:none;background:var(--purple);color:#fff;font-size:12px;cursor:pointer;">🔄 重试</button></div>';
+      '<div class="player-placeholder">鈿狅笍 鑾峰彇澶辫触<br><small>'+(e.message||'缃戠粶閿欒')+'</small><br><small style="margin-top:6px;display:block;color:var(--text3)">' + dl + '</small><br><button onclick="playItem('+vodId+',\''+vodName.replace(/'/g,"\\'")+'\')" style="margin-top:12px;padding:8px 20px;border-radius:20px;border:none;background:var(--purple);color:#fff;font-size:12px;cursor:pointer;">馃攧 閲嶈瘯</button></div>';
   }
 }
 
@@ -1584,7 +1584,7 @@ function openPlayer(item) {
   showPlayer();
   document.getElementById('playerTitle').textContent = item.vod_name;
   const allSources = parsePlayUrls(item.vod_play_url, item.vod_play_from);
-  if (!allSources.length) { document.getElementById('playerContainer').innerHTML='<div class="player-placeholder">⚠️ 无法解析播放地址</div>'; return; }
+  if (!allSources.length) { document.getElementById('playerContainer').innerHTML='<div class="player-placeholder">鈿狅笍 鏃犳硶瑙ｆ瀽鎾斁鍦板潃</div>'; return; }
   document.getElementById('sourceSelect').innerHTML = allSources.map((s,i)=>
     '<button class="source-btn'+(i===0?' active':'')+'" onclick="switchSource('+i+')">'+escapeHTML(s.name)+'</button>'
   ).join('');
@@ -1645,7 +1645,7 @@ function closePlayer() {
   document.querySelector('.bottom-nav').style.display = 'flex';
   document.querySelector('.header').style.display = 'block';
   document.body.style.overflow = '';
-  document.getElementById('playerContainer').innerHTML = '<div class="player-placeholder">🎬 正在加载播放器...</div>';
+  document.getElementById('playerContainer').innerHTML = '<div class="player-placeholder">馃幀 姝ｅ湪鍔犺浇鎾斁鍣?..</div>';
   document.getElementById('playerModeToggle').style.display = 'none';
   currentPlayData = null;
   currentPlayUrl = '';
@@ -1654,7 +1654,7 @@ function closePlayer() {
 function switchParseLine() {
   if (!currentPlayUrl) return;
   parseApiIdx = (parseApiIdx + 1) % PARSE_APIS.length;
-  document.getElementById('currentParseLabel').textContent = '解析' + (parseApiIdx + 1);
+  document.getElementById('currentParseLabel').textContent = '瑙ｆ瀽' + (parseApiIdx + 1);
   playViaProxy(currentPlayUrl, parseApiIdx);
 }
 
@@ -1686,10 +1686,10 @@ async function doSearch() {
     const result = await apiCall({ wd: query });
     document.getElementById('searchResults').innerHTML = result.list.length > 0
       ? result.list.map(renderMovieCard).join('')
-      : '<div class="empty-state"><div class="icon">🔍</div><p>没有找到相关影片<br>试试其他关键词</p></div>';
+      : '<div class="empty-state"><div class="icon">馃攳</div><p>娌℃湁鎵惧埌鐩稿叧褰辩墖<br>璇曡瘯鍏朵粬鍏抽敭璇?/p></div>';
   } catch(e) {
     document.getElementById('searchResults').innerHTML = '';
-    document.getElementById('searchStatus').textContent = '搜索失败: '+(e.message||'未知错误');
+    document.getElementById('searchStatus').textContent = '鎼滅储澶辫触: '+(e.message||'鏈煡閿欒');
     document.getElementById('searchStatus').classList.add('error');
   }
 }
@@ -1709,7 +1709,7 @@ document.addEventListener('touchend', () => { pullStartY = 0; pulling = false; }
 
 async function refreshData() {
   const indicator = document.getElementById('pullIndicator');
-  indicator.innerHTML = '<span class="pull-spinner"></span>正在刷新...';
+  indicator.innerHTML = '<span class="pull-spinner"></span>姝ｅ湪鍒锋柊...';
   indicator.classList.add('show');
   try {
     allMovies = await loadAllData();
@@ -1718,10 +1718,10 @@ async function refreshData() {
     renderMovieGrid();
     updateStats();
     if (tmdbEnabled()) { batchTMDB(allMovies).then(() => reRenderAll()); }
-    indicator.innerHTML = '✅ 更新完成';
+    indicator.innerHTML = '鉁?鏇存柊瀹屾垚';
     setTimeout(() => indicator.classList.remove('show'), 2000);
   } catch(e) {
-    indicator.innerHTML = '⚠️ 刷新失败，请检查网络';
+    indicator.innerHTML = '鈿狅笍 鍒锋柊澶辫触锛岃妫€鏌ョ綉缁?;
     setTimeout(() => indicator.classList.remove('show'), 2000);
   }
 }
@@ -1742,7 +1742,7 @@ function showToast(msg) {
 
 // ============ STATS ============
 function updateStats() {
-  document.getElementById('updateCount').textContent = allMovies.length + ' 部资源';
+  document.getElementById('updateCount').textContent = allMovies.length + ' 閮ㄨ祫婧?;
 }
 
 // ============ INIT ============
@@ -1771,7 +1771,7 @@ async function init() {
     }
   } catch(e) {
     if (allMovies.length === 0) {
-      document.getElementById('movieGrid').innerHTML = '<div class="status-bar error">加载失败<br><small>'+(e.message||'网络错误')+'</small></div>';
+      document.getElementById('movieGrid').innerHTML = '<div class="status-bar error">鍔犺浇澶辫触<br><small>'+(e.message||'缃戠粶閿欒')+'</small></div>';
     }
   }
 
@@ -1797,24 +1797,21 @@ function showUpdateBanner(remote) {
   const banner = document.createElement('div');
   banner.id = 'updateBanner';
   banner.style.cssText = 'position:fixed;bottom:70px;left:12px;right:12px;z-index:500;background:linear-gradient(135deg,#6c5ce7,#ff6b9d);color:#fff;border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:8px;box-shadow:0 4px 20px rgba(108,92,231,0.5);animation:slideUp 0.3s ease;font-size:12px;';
-  banner.innerHTML = '<div style="flex:1"><div style="font-weight:700;margin-bottom:2px">🎉 发现新版本 v'+remote.version+'</div><div style="font-size:10px;opacity:0.85">'+escapeHTML(remote.note||'')+' · '+escapeHTML(remote.updated||'')+'</div></div>'+
-    '<button onclick="doUpdate()" style="flex-shrink:0;height:28px;padding:0 14px;border-radius:14px;border:none;background:#fff;color:#6c5ce7;font-size:11px;font-weight:700;cursor:pointer;">立即更新</button>'+
-    '<button onclick="this.parentElement.remove()" style="flex-shrink:0;width:22px;height:22px;border-radius:50%;border:none;background:rgba(255,255,255,0.2);color:#fff;font-size:11px;cursor:pointer;">✕</button>';
+  banner.innerHTML = '<div style="flex:1"><div style="font-weight:700;margin-bottom:2px">馃帀 鍙戠幇鏂扮増鏈?v'+remote.version+'</div><div style="font-size:10px;opacity:0.85">'+escapeHTML(remote.note||'')+' 路 '+escapeHTML(remote.updated||'')+'</div></div>'+
+    '<button onclick="doUpdate()" style="flex-shrink:0;height:28px;padding:0 14px;border-radius:14px;border:none;background:#fff;color:#6c5ce7;font-size:11px;font-weight:700;cursor:pointer;">绔嬪嵆鏇存柊</button>'+
+    '<button onclick="this.parentElement.remove()" style="flex-shrink:0;width:22px;height:22px;border-radius:50%;border:none;background:rgba(255,255,255,0.2);color:#fff;font-size:11px;cursor:pointer;">鉁?/button>';
   document.body.appendChild(banner);
 }
 
-async function doUpdate() {
-  const banner = document.getElementById('updateBanner');
-  if (banner) banner.innerHTML = '<div style="text-align:center;width:100%;padding:6px">⏳ 正在更新...</div>';
-  try {
-    const resp = await fetchWithTimeout(UPDATE_URL+'?t='+Date.now(), 15000);
-    if (!resp.ok) throw new Error('下载失败');
-    const newHTML = await resp.text();
-    if (newHTML.indexOf('<!DOCTYPE html>')<0 && newHTML.indexOf('<html')<0) throw new Error('格式异常');
-    document.open(); document.write(newHTML); document.close();
-  } catch(e) {
-    if (banner) banner.innerHTML = '<div style="text-align:center;width:100%;padding:6px;color:#ffcccb">⚠️ 更新失败: '+escapeHTML(e.message||'')+'</div>';
-  }
+function doUpdate() {
+  var banner = document.getElementById('updateBanner');
+  if (banner) banner.innerHTML = '<div style="text-align:center;width:100%;padding:6px">鈴?姝ｅ湪鏇存柊...</div>';
+  // Clear all cached data so fresh data loads after reload
+  try { localStorage.removeItem('zhuiju_cache'); } catch(e) {}
+  // Force hard reload from server (no cache)
+  // Add cache-busting version param to bypass browser/CDN cache
+  var url = location.href.split('?')[0].split('#')[0];
+  location.replace(url + '?v=' + Date.now());
 }
 
 const updateCSS = document.createElement('style');
